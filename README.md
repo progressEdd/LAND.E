@@ -7,3 +7,6 @@ For reference here is [a playlist of the series](https://youtube.com/playlist?li
 To make the series possible, he uses [NovelAI](https://novelai.net). I wanted to make an app that you can run locally so that you can switch out models and not worry about updates.
 
 These are some experiments and prompts I made with chatgpt
+
+# building this project
+To run the exploration notebook, make sure to install pythoon and ollama. When building your environment, make sure to install the dependencies (ollama, openai, etc) from the [pyproject.toml](./pyproject.toml) file
