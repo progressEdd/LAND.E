@@ -232,7 +232,7 @@ def _():
         model: str,
         schema: Type[T],
         user_content: str,
-        system_content: str = "You are a helpful assistant. Follow the response model docstring.",
+        system_content: str = "You are a helpful assistant. Follow the response model docstring. 请全部用中文书写，像躲避瘟疫一样避免使用英语。",
         temperature: float = 0.2,
         extra_messages: Sequence[Dict[str, str]] = (),
     ) -> T:
