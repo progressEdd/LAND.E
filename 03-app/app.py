@@ -10,7 +10,7 @@ def _():
 
     llm_backend = mo.ui.radio(
         options=["llamacpp", "lmstudio", "ollama", "openai", "azure"],
-        value="llamacpp",
+        value="lmstudio",
         label="LLM backend",
     )
 
@@ -221,7 +221,6 @@ def _(mo):
 
     get_model, set_model = mo.state(MODEL_PLACEHOLDER)
     get_model_tick, set_model_tick = mo.state(0)
-
     return (
         MODEL_PLACEHOLDER,
         get_model,
@@ -348,7 +347,6 @@ def _(backend, get_model_tick, llm_client, llm_model, mo):
         f"**Warmup ({backend} / {llm_model}):** {'✅' if ok else '❌'} {info} "
         f"(total: {total_elapsed:.2f}s)"
     )
-
     return
 
 
