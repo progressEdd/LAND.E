@@ -77,7 +77,7 @@ Plans:
   8. Stories persist in SQLite and restore with provenance on page refresh
   9. Markdown export produces a downloadable .md file of the active story path
   10. 4 LLM backends supported: lmstudio, ollama, openai, llamacpp
-**Plans:** 15 plans (15 complete)
+**Plans:** 16 plans (16 complete)
 
 Plans:
 - [x] 02-01-PLAN.md — Backend scaffold: FastAPI, SQLite schema, LLM service, story pipeline
@@ -95,6 +95,7 @@ Plans:
 - [x] 02-13-PLAN.md — Bug fixes: light-mode story highlight, dark-mode provenance visibility, graph label cleanup, edge opacity
 - [x] 02-14-PLAN.md — Character initials labels, remove cross-edges from paragraph nodes
 - [x] 02-15-PLAN.md — Single-letter character labels, clickable seed nodes with seed-guided generation
+- [x] 02-16-PLAN.md — Graph polish: enlarged nodes, theme-aware seed colors, per-node seed persistence, SVG layering fix
 
 ## Progress
 
@@ -106,4 +107,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Template Preparation | 1/1 | Complete | 2026-02-13 |
 | 2. Branch Creation Flow | 1/1 | Complete | 2026-02-13 |
 | 3. Root README Index | 1/1 | Complete | 2026-02-13 |
-| 4. Webapp UI | 15/15 | Complete | 2026-02-14 |
+| 4. Webapp UI | 16/16 | Complete | 2026-02-14 |
