@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Every experiment/feature branch is self-documenting from creation — branching, worktree setup, README population, and project naming happen automatically so you can start building immediately.
-**Current focus:** Phase 4 (Webapp UI) — Plan 02-13 COMPLETE (Visual Bug Fixes). All plans complete.
+**Current focus:** Phase 4 (Webapp UI) — Plan 02-14 COMPLETE (Character Initials, Remove Cross-Edges). All plans complete.
 
 ## Current Position
 
-Phase: 4 of 4 (Webapp UI) — Plan 02-13 COMPLETE
-Plan: 13 in current phase — COMPLETE
-Status: Fixed visual bugs — theme-aware story highlight, provenance tint opacity, graph label cleanup, cross-edge visibility.
-Last activity: 2026-02-14 — Completed 02-13-PLAN.md (Visual Bug Fixes)
+Phase: 4 of 4 (Webapp UI) — Plan 02-14 COMPLETE
+Plan: 14 in current phase — COMPLETE
+Status: Character supernodes show proper initials, paragraph-to-character cross-edges removed for cleaner graph.
+Last activity: 2026-02-14 — Completed 02-14-PLAN.md (Character Initials, Remove Cross-Edges)
 
-Progress: [██████████] 100% (13/13 plans in Phase 4)
+Progress: [██████████] 100% (14/14 plans in Phase 4)
 
 ## Performance Metrics
 
@@ -79,5 +79,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 02-13-PLAN.md (Visual Bug Fixes). All Phase 4 plans complete.
+Stopped at: Completed 02-14-PLAN.md (Character Initials, Remove Cross-Edges). All Phase 4 plans complete.
 Resume file: None — all planned work complete
