@@ -7,6 +7,13 @@ export type NodeType = 'paragraph' | 'block' | 'sentence';
 // Supported LLM backends
 export type LLMBackend = 'lmstudio' | 'ollama' | 'openai' | 'llamacpp';
 
+// A provenance span tracking text origin within a node
+export interface ProvenanceSpan {
+	start_offset: number;
+	end_offset: number;
+	source: ProvenanceSource;
+}
+
 // A node in the story tree (paragraph, block, or sentence)
 export interface StoryNode {
 	id: string;
@@ -18,6 +25,7 @@ export interface StoryNode {
 	source: ProvenanceSource;
 	is_draft: boolean;
 	created_at: string;
+	provenance_spans: ProvenanceSpan[];
 }
 
 // A story with its tree of nodes

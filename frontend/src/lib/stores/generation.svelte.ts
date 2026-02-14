@@ -105,10 +105,8 @@ class GenerationState {
 				this.status = 'idle';
 				this.draftNodeId = null;
 				this.draftContent = '';
-				// Refresh the story to get updated active_path
-				if (storyState.activeStoryId) {
-					storyState.loadStories();
-				}
+				// Refresh the active story to get updated active_path and nodes
+				storyState.refreshActiveStory();
 				break;
 
 			case 'rejected':

@@ -5,6 +5,8 @@
 	import { Provenance } from '$lib/extensions/provenance';
 	import { editorState } from '$lib/stores/editor.svelte';
 	import { generationState } from '$lib/stores/generation.svelte';
+	import { storyState } from '$lib/stores/story.svelte';
+	import type { StoryNode } from '$lib/types';
 
 	let { content = '', onUpdate }: { content?: string; onUpdate?: (html: string) => void } =
 		$props();
@@ -15,6 +17,9 @@
 	// Track how many draft characters have been inserted
 	let insertedDraftLength = 0;
 	let lastDraftContentLength = 0;
+
+	// Track which story is currently loaded in the editor to avoid redundant loads
+	let loadedStoryId: string | null = null;
 
 	onMount(() => {
 		editor = new Editor({
@@ -56,6 +61,117 @@
 		});
 
 		editorState.editor = editor;
+	});
+
+	/**
+	 * Load story nodes into the editor with provenance marks preserved.
+	 * Each node's content is inserted as a paragraph with its provenance spans
+	 * applied as marks at the correct character offsets.
+	 */
+	function loadContent(nodes: StoryNode[]): void {
+		if (!editor) return;
+
+		// Clear the editor
+		editor.commands.clearContent();
+
+		if (nodes.length === 0) return;
+
+		// Build content array with provenance marks applied
+		const contentBlocks: Array<{ type: string; content?: Array<{ type: string; text: string; marks?: Array<{ type: string; attrs: { source: string } }> }> }> = [];
+
+		for (const node of nodes) {
+			if (!node.content) continue;
+
+			const spans = node.provenance_spans;
+			if (spans && spans.length > 0) {
+				// Apply provenance marks to character ranges
+				const textParts: Array<{ type: string; text: string; marks: Array<{ type: string; attrs: { source: string } }> }> = [];
+
+				// Sort spans by start_offset
+				const sortedSpans = [...spans].sort((a, b) => a.start_offset - b.start_offset);
+
+				let lastEnd = 0;
+				for (const span of sortedSpans) {
+					// Fill any gap before this span with the node's default source
+					if (span.start_offset > lastEnd) {
+						const gapText = node.content.slice(lastEnd, span.start_offset);
+						if (gapText) {
+							textParts.push({
+								type: 'text',
+								text: gapText,
+								marks: [{ type: 'provenance', attrs: { source: node.source } }]
+							});
+						}
+					}
+					// Add the span's text with its source
+					const spanText = node.content.slice(span.start_offset, span.end_offset);
+					if (spanText) {
+						textParts.push({
+							type: 'text',
+							text: spanText,
+							marks: [{ type: 'provenance', attrs: { source: span.source } }]
+						});
+					}
+					lastEnd = span.end_offset;
+				}
+				// Fill any remaining text after last span
+				if (lastEnd < node.content.length) {
+					const remainingText = node.content.slice(lastEnd);
+					if (remainingText) {
+						textParts.push({
+							type: 'text',
+							text: remainingText,
+							marks: [{ type: 'provenance', attrs: { source: node.source } }]
+						});
+					}
+				}
+
+				if (textParts.length > 0) {
+					contentBlocks.push({ type: 'paragraph', content: textParts });
+				}
+			} else {
+				// No provenance spans — use the node's source for the whole content
+				contentBlocks.push({
+					type: 'paragraph',
+					content: [{
+						type: 'text',
+						text: node.content,
+						marks: [{ type: 'provenance', attrs: { source: node.source } }]
+					}]
+				});
+			}
+		}
+
+		if (contentBlocks.length > 0) {
+			editor.commands.setContent({ type: 'doc', content: contentBlocks });
+		}
+
+		// Position cursor at the end
+		editor.commands.focus('end');
+	}
+
+	// Watch for active story changes and load content into editor
+	$effect(() => {
+		const activeId = storyState.activeStoryId;
+		const activeStory = storyState.activeStory;
+
+		if (!editor) return;
+
+		if (!activeId) {
+			// No active story — clear editor
+			if (loadedStoryId !== null) {
+				editor.commands.clearContent();
+				loadedStoryId = null;
+			}
+			return;
+		}
+
+		// Only reload if the story changed or wasn't loaded yet
+		if (activeId !== loadedStoryId && activeStory && activeStory.nodes) {
+			const pathNodes = storyState.getActivePathNodes();
+			loadContent(pathNodes);
+			loadedStoryId = activeId;
+		}
 	});
 
 	// Watch for draft content changes and append tokens to editor

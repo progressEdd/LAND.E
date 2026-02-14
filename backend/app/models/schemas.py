@@ -120,6 +120,14 @@ class StoryCreateRequest(BaseModel):
     premise: str
 
 
+class ProvenanceSpanResponse(BaseModel):
+    """Response model for a provenance span."""
+
+    start_offset: int
+    end_offset: int
+    source: str
+
+
 class NodeResponse(BaseModel):
     """Response model for a single story node."""
 
@@ -132,6 +140,7 @@ class NodeResponse(BaseModel):
     source: str
     is_draft: bool
     created_at: str
+    provenance_spans: list[ProvenanceSpanResponse] = Field(default_factory=list)
 
 
 class StoryResponse(BaseModel):

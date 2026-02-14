@@ -47,7 +47,7 @@ class ProvenanceSpanInput(BaseModel):
 # ---------- Helper functions ----------
 
 
-def _row_to_node(row) -> dict:
+def _row_to_node(row, spans: list[dict] | None = None) -> dict:
     """Convert a database row to a NodeResponse dict."""
     return {
         "id": row["id"],
@@ -59,6 +59,7 @@ def _row_to_node(row) -> dict:
         "source": row["source"],
         "is_draft": bool(row["is_draft"]),
         "created_at": row["created_at"],
+        "provenance_spans": spans or [],
     }
 
 
@@ -158,8 +159,26 @@ async def get_story(story_id: str):
             (story_id,),
         )
 
+        # Fetch all provenance spans for this story's nodes
+        node_ids = [r["id"] for r in node_rows]
+        spans_by_node: dict[str, list[dict]] = {nid: [] for nid in node_ids}
+        if node_ids:
+            placeholders = ", ".join("?" for _ in node_ids)
+            span_rows = await db.execute_fetchall(
+                f"SELECT node_id, start_offset, end_offset, source FROM provenance_spans WHERE node_id IN ({placeholders}) ORDER BY start_offset",
+                tuple(node_ids),
+            )
+            for sr in span_rows:
+                spans_by_node[sr["node_id"]].append(
+                    {
+                        "start_offset": sr["start_offset"],
+                        "end_offset": sr["end_offset"],
+                        "source": sr["source"],
+                    }
+                )
+
     story = story_rows[0]
-    nodes = [_row_to_node(r) for r in node_rows]
+    nodes = [_row_to_node(r, spans_by_node.get(r["id"], [])) for r in node_rows]
     path = json.loads(story["active_path"]) if story["active_path"] else []
 
     return StoryResponse(
