@@ -4,6 +4,7 @@
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import GraphPlaceholder from '$lib/components/GraphPlaceholder.svelte';
 	import SettingsPanel from '$lib/components/SettingsPanel.svelte';
+	import AnalysisPanel from '$lib/components/AnalysisPanel.svelte';
 	import { themeState } from '$lib/stores/theme.svelte';
 
 	let { children } = $props();
@@ -47,7 +48,7 @@
 
 	<!-- Right Sidebar: Story Analysis -->
 	<Sidebar side="right" title="Story Analysis" bind:collapsed={rightCollapsed}>
-		<p class="placeholder-text">Analysis panel &mdash; coming in Plan 06</p>
+		<AnalysisPanel />
 	</Sidebar>
 </div>
 
@@ -138,12 +139,6 @@
 		height: 100%;
 		width: 100%;
 		overflow: auto;
-	}
-
-	.placeholder-text {
-		color: #6b7280;
-		font-size: 13px;
-		font-style: italic;
 	}
 
 	/* Splitpanes custom theme */

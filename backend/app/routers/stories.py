@@ -5,10 +5,12 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from app.models.database import get_db
 from app.models.schemas import NodeResponse, StoryCreateRequest, StoryResponse
+from app.services.export import export_story_markdown
 
 
 router = APIRouter(prefix="/api/stories", tags=["stories"])
@@ -363,3 +365,33 @@ async def reject_node(story_id: str, node_id: str):
         await db.commit()
 
     return None
+
+
+# ---------- Export endpoints ----------
+
+
+@router.get("/{story_id}/export")
+async def export_story(story_id: str):
+    """Export a story as a downloadable markdown file."""
+    try:
+        markdown = await export_story_markdown(story_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Story not found")
+
+    # Fetch title for the filename
+    async with get_db() as db:
+        story_rows = await db.execute_fetchall(
+            "SELECT title FROM stories WHERE id = ?", (story_id,)
+        )
+        title = story_rows[0]["title"] if story_rows else "story"
+
+    # Sanitize title for filename
+    safe_title = "".join(c if c.isalnum() or c in " -_" else "" for c in title).strip()
+    if not safe_title:
+        safe_title = "story"
+
+    return Response(
+        content=markdown,
+        media_type="text/markdown",
+        headers={"Content-Disposition": f'attachment; filename="{safe_title}.md"'},
+    )
