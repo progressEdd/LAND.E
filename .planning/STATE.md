@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Every experiment/feature branch is self-documenting from creation — branching, worktree setup, README population, and project naming happen automatically so you can start building immediately.
-**Current focus:** Phase 4 (Webapp UI) — replacing marimo notebook with purpose-built story writer webapp
+**Current focus:** Phase 4 (Webapp UI) — COMPLETE. All 6 plans executed.
 
 ## Current Position
 
-Phase: 4 of 4 (Webapp UI)
-Plan: 6 of 6 in current phase
-Status: Plan 02-05 complete. WebSocket generation streaming, draft node lifecycle, token-by-token editor insertion with provenance marks.
-Last activity: 2026-02-14 — Completed 02-05-PLAN.md (WebSocket Generation Streaming)
+Phase: 4 of 4 (Webapp UI) — COMPLETE
+Plan: 6 of 6 in current phase — COMPLETE
+Status: All plans complete. Full webapp delivered: create stories, generate AI continuations, view analysis, export markdown, switch stories with provenance restoration.
+Last activity: 2026-02-14 — Completed 02-06-PLAN.md (Analysis Panel, Export & Story Loading)
 
-Progress: [████████░░] 83% (5/6 plans in Phase 4)
+Progress: [██████████] 100% (6/6 plans in Phase 4)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 1.8 min
-- Total execution time: 0.2 hours
+- Total plans completed: 9
+- Average duration: 2.0 min
+- Total execution time: 0.3 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [████████░░] 83% (5/6 plans in Phase 4)
 | 1. Template Preparation | 1/1 | 1 min | 1 min |
 | 2. Branch Creation Flow | 1/1 | 2 min | 2 min |
 | 3. Root README Index | 1/1 | 1 min | 1 min |
-| 4. Webapp UI | 5/6 | 14 min | 2.8 min |
+| 4. Webapp UI | 6/6 | 18 min | 3.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01-webapp (3 min), 02-02-webapp (3 min), 02-03-webapp (2 min), 02-04-webapp (3 min), 02-05-webapp (3 min)
+- Last 5 plans: 02-02-webapp (3 min), 02-03-webapp (2 min), 02-04-webapp (3 min), 02-05-webapp (3 min), 02-06-webapp (4 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -64,6 +64,10 @@ Recent decisions affecting current work:
 - [02-05-webapp]: Model name sent in generate WebSocket message from frontend — avoids extra API call
 - [02-05-webapp]: User-typed text provenance via handleTextInput ProseMirror prop — intercepts and wraps with user_written mark
 
+- [02-06-webapp]: Added ProvenanceSpanResponse to backend and included spans in get_story endpoint for content restoration
+- [02-06-webapp]: Used loadedStories cache map in story store to avoid redundant API calls when switching stories
+- [02-06-webapp]: Async setActiveStory() auto-loads full story data if not cached
+
 ### Pending Todos
 
 None.
@@ -75,5 +79,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 02-05-PLAN.md (WebSocket generation streaming, draft flow, provenance)
+Stopped at: Completed 02-06-PLAN.md (Analysis panel, markdown export, story loading flow). Phase 02 complete.
 Resume file: None
