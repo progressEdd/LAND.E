@@ -87,7 +87,7 @@ Plans:
 - [x] 02-05-PLAN.md — WebSocket generation streaming, inline draft flow in editor
 - [x] 02-06-PLAN.md — Analysis panel, markdown export, story loading, app polish
 - [x] 02-07-PLAN.md — "I'm Feeling Lucky" random premise generator
-- [x] 02-08-PLAN.md — Bug fixes: accept truncation, missing space, generating animation, title population
+- [x] 02-08-PLAN.md — Bug fixes: accept truncation, missing space, generating animation, title population, delete button
 
 ## Progress
 
