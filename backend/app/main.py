@@ -9,6 +9,7 @@ from app.config import settings
 from app.models.database import init_db
 from app.routers.stories import router as stories_router
 from app.routers.llm import router as llm_router
+from app.routers.ws import router as ws_router
 
 
 @asynccontextmanager
@@ -32,6 +33,7 @@ app.add_middleware(
 # Include routers
 app.include_router(stories_router)
 app.include_router(llm_router)
+app.include_router(ws_router)
 
 
 @app.get("/api/health")

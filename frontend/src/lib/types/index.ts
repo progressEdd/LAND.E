@@ -42,13 +42,13 @@ export interface LLMConfig {
 // Structured story analysis from LLM
 export interface StoryAnalysis {
 	logline: string;
-	cast: string;
-	world_rules: string;
+	cast: string[];
+	world_rules: string[];
 	pov_tense_tone: string;
-	timeline: string;
+	timeline: string[];
 	current_situation: string;
-	active_threads: string;
-	continuity_landmines: string;
-	ambiguities: string;
-	next_paragraph_seeds: string;
+	active_threads: string[];
+	continuity_landmines: string[];
+	ambiguities: string[];
+	next_paragraph_seeds: string[];
 }
