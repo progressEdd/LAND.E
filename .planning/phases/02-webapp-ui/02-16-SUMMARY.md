@@ -2,7 +2,7 @@
 
 ## What Was Done
 
-Enlarged all graph nodes for readability, made seed colors theme-aware, persisted seeds per-node from tree data, fixed SVG layering, improved splitter visibility, and fixed seed-paragraph overlap with a post-layout spacing pass.
+Enlarged all graph nodes for readability, made seed colors theme-aware, persisted seeds per-node from tree data, fixed SVG layering so seed edges render behind paragraph nodes, improved splitter visibility, fixed seed-paragraph overlap with a post-layout spacing pass, and enlarged tooltip text/box to match editor font size.
 
 ### Before (issues addressed)
 
@@ -23,7 +23,7 @@ Enlarged all graph nodes for readability, made seed colors theme-aware, persiste
 - `handleSeedClick` uses `seed.parentId` to generate from the correct parent node
 
 **NodeGraph.svelte — SVG layering fix:**
-- Split seed rendering into two `{#each}` passes: all edge `<line>` elements first, then all seed `<g>` circle groups on top
+- Reordered SVG render layers: (1) tree edges, (2) seed edges, (3) paragraph nodes, (4) character supernodes, (5) seed node circles — seed dashed lines now render behind paragraph nodes
 - Uses composite keys `${s.parentId}-edge-${s.index}` / `${s.parentId}-node-${s.index}` for uniqueness
 
 **NodeGraph.svelte — Theme-aware seed colors:**
@@ -41,6 +41,11 @@ Enlarged all graph nodes for readability, made seed colors theme-aware, persiste
 - Added post-layout pass after d3 tree computation: for each node with seeds, pushes all child subtrees down by `SEED_EXTRA` (seed offset + seed radius + gap) so seed rows don't collide with the next paragraph level
 - Uses recursive `pushSubtreeDown()` to shift entire subtrees, preserving relative positions
 
+**NodeGraph.svelte — Tooltip enlargement:**
+- Tooltip max-width increased from 280px to 420px, padding from 8px/10px to 12px/16px, border-radius 6px→8px
+- Title font size increased from 11px to 15px, body font size from 10px to 14px, line-height from 1.4 to 1.5
+- Tooltip dot increased from 8px to 10px
+
 ### After
 
 ![Seed nodes properly spaced below parent paragraph nodes, no overlap](../../../00-supporting-files/images/02-CONTEXT/20260214022435.png)
@@ -49,6 +54,7 @@ Enlarged all graph nodes for readability, made seed colors theme-aware, persiste
 
 - **webapp-ui branch:** `9bb37be` — feat: enlarge graph nodes, persist seeds per-node, theme-aware seed colors, fix SVG layering
 - **webapp-ui branch:** `a575dc3` — fix: push child nodes down when parent has seeds to prevent overlap
+- **webapp-ui branch:** `367c00e` — fix: render seed edges behind paragraph nodes, enlarge tooltip text and box
 
 ### Decisions
 
