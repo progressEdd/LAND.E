@@ -2,7 +2,7 @@
 	import '../app.css';
 	import { Splitpanes, Pane } from 'svelte-splitpanes';
 	import Sidebar from '$lib/components/Sidebar.svelte';
-	import GraphPlaceholder from '$lib/components/GraphPlaceholder.svelte';
+	import NodeGraph from '$lib/components/NodeGraph.svelte';
 	import SettingsPanel from '$lib/components/SettingsPanel.svelte';
 	import AnalysisPanel from '$lib/components/AnalysisPanel.svelte';
 	import { themeState } from '$lib/stores/theme.svelte';
@@ -39,7 +39,7 @@
 				</Pane>
 				<Pane minSize={20}>
 					<div class="pane-content">
-						<GraphPlaceholder />
+						<NodeGraph />
 					</div>
 				</Pane>
 			</Splitpanes>
