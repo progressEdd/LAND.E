@@ -1,17 +1,19 @@
-<div class="editor-placeholder">
-	<p>Editor &mdash; coming in Plan 03</p>
+<script lang="ts">
+	import Editor from '$lib/components/Editor.svelte';
+	import EditorToolbar from '$lib/components/EditorToolbar.svelte';
+</script>
+
+<div class="editor-pane">
+	<EditorToolbar />
+	<Editor />
 </div>
 
 <style>
-	.editor-placeholder {
+	.editor-pane {
 		display: flex;
-		align-items: center;
-		justify-content: center;
+		flex-direction: column;
 		height: 100%;
 		width: 100%;
 		background-color: var(--panel-bg, #030712);
-		color: var(--text-faint, #6b7280);
-		font-size: 14px;
-		font-style: italic;
 	}
 </style>
