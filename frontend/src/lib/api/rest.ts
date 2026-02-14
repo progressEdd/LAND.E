@@ -35,6 +35,11 @@ class ApiClient {
 
 	// ---------- Stories ----------
 
+	async randomPremise(): Promise<string> {
+		const result = await this.request<{ premise: string }>('/api/stories/random-premise');
+		return result.premise;
+	}
+
 	async createStory(title: string, premise: string): Promise<Story> {
 		return this.request<Story>('/api/stories', {
 			method: 'POST',

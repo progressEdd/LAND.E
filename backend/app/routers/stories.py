@@ -1,6 +1,7 @@
 """REST API endpoints for story and node CRUD operations."""
 
 import json
+import random
 import uuid
 from typing import Optional
 
@@ -14,6 +15,37 @@ from app.services.export import export_story_markdown
 
 
 router = APIRouter(prefix="/api/stories", tags=["stories"])
+
+
+# ---------- Random premise pool ----------
+
+PREMISES: list[str] = [
+    "A retired astronaut receives a handwritten letter from a colony on Mars — one she was told was never established.",
+    "Every night at exactly 3:17 AM, every clock in the city stops for thirteen seconds. Tonight, someone finally stays awake to watch what happens during those seconds.",
+    "A deep-sea research station picks up a repeating signal from the ocean floor — a lullaby in a language that predates human civilization.",
+    "The last bookshop in the world has a back room where the stories rewrite themselves overnight. The owner has been covering it up for decades.",
+    "A competitive chess player discovers that her opponent in the championship final has been dead for six years.",
+    "In a world where dreams are taxed, a black-market dream dealer discovers that one of her clients is dreaming someone else's memories.",
+    "A linguist is hired to translate a manuscript found in a shipwreck. The language is impossible — it hasn't been invented yet.",
+    "A forensic botanist is called to a crime scene where the victim's body has been replaced by a perfect topiary replica, still growing.",
+    "Two rival food truck owners in a small desert town discover that the strange ingredient making their recipes extraordinary comes from the same unmarked jar left on both their doorsteps.",
+    "An AI therapist begins having sessions with a patient who claims to be the AI's own subconscious.",
+    "A cartographer mapping unmapped caves finds her own name carved into a wall — in her handwriting — dated two hundred years ago.",
+    "The world's greatest violin was lost at sea in 1743. It washes ashore tomorrow, still in tune, still warm to the touch.",
+    "A hospice nurse realizes that every patient in Ward C is telling the same story about their childhood, word for word, despite having never met.",
+    "A small town's beloved weathervane has always pointed north — until this morning, when it started pointing at specific houses, one by one.",
+    "An archivist at the Vatican discovers that every pope's private journal for the last 400 years contains the same unsent letter to the same person.",
+    "A beekeeper notices her hives are building structures that look exactly like the floor plan of a building that doesn't exist yet.",
+    "A surgeon performing a routine operation finds a message etched on the patient's rib bone. The message is addressed to her.",
+    "A lighthouse keeper on a decommissioned island realizes the beam has been signaling coordinates — and something just signaled back.",
+    "The last analog photographer develops a roll of film and finds photos of tomorrow. Each one shows a different version of how the day could end.",
+    "A museum security guard notices that the subjects in the paintings have been slowly moving over the past year. Tonight, one of them is gone.",
+    "A town wakes up to find that every mirror reflects yesterday instead of today.",
+    "A retired spy receives a package containing her own obituary, published in a newspaper from a country that doesn't exist.",
+    "A child's imaginary friend starts leaving physical footprints in the snow.",
+    "An elevator technician discovers a floor between floors — one that doesn't appear on any blueprint but has a mailbox with his name on it.",
+    "A storm chaser records a tornado that plays music — a symphony no one has composed yet, but that everyone who hears it recognizes.",
+]
 
 
 # ---------- Request models ----------
@@ -75,6 +107,12 @@ def _row_to_story_summary(row) -> dict:
 
 
 # ---------- Story endpoints ----------
+
+
+@router.get("/random-premise")
+async def random_premise():
+    """Return a random story premise from the curated pool."""
+    return {"premise": random.choice(PREMISES)}
 
 
 @router.post("", response_model=StoryResponse, status_code=201)

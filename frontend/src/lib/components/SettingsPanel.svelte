@@ -23,6 +23,7 @@
 	let showNewStoryForm = $state(false);
 	let newStoryTitle = $state('');
 	let newStoryPremise = $state('');
+	let isLoadingPremise = $state(false);
 
 	async function onBackendChange(backend: LLMBackend) {
 		settingsState.backend = backend;
@@ -104,6 +105,17 @@
 		newStoryTitle = '';
 		newStoryPremise = '';
 		showNewStoryForm = false;
+	}
+
+	async function feelingLucky() {
+		isLoadingPremise = true;
+		try {
+			newStoryPremise = await api.randomPremise();
+		} catch {
+			// Silently fail — user can still type manually
+		} finally {
+			isLoadingPremise = false;
+		}
 	}
 
 	// Load stories on mount
@@ -231,13 +243,21 @@
 				bind:value={newStoryTitle}
 				placeholder="Story title"
 			/>
-			<textarea
-				class="input textarea"
-				bind:value={newStoryPremise}
-				placeholder="Story premise..."
-				rows="3"
-			></textarea>
-			<div class="form-actions">
+		<textarea
+			class="input textarea"
+			bind:value={newStoryPremise}
+			placeholder="Story premise..."
+			rows="3"
+		></textarea>
+		<button
+			class="btn btn-lucky btn-small"
+			onclick={feelingLucky}
+			disabled={isLoadingPremise}
+			title="Fill with a random story premise"
+		>
+			{isLoadingPremise ? 'Rolling...' : "I'm Feeling Lucky"}
+		</button>
+		<div class="form-actions">
 				<button class="btn btn-primary btn-small" onclick={createStory} disabled={storyState.isLoading}>
 					{storyState.isLoading ? 'Creating...' : 'Create'}
 				</button>
@@ -373,6 +393,17 @@
 	.btn-small {
 		padding: 4px 8px;
 		font-size: 12px;
+	}
+
+	.btn-lucky {
+		width: 100%;
+		border-style: dashed;
+		color: var(--text-muted, #9ca3af);
+	}
+
+	.btn-lucky:hover:not(:disabled) {
+		border-color: #6366f1;
+		color: #a5b4fc;
 	}
 
 	.error-text {
