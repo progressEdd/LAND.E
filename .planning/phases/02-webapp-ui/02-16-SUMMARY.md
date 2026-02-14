@@ -2,12 +2,13 @@
 
 ## What Was Done
 
-Enlarged all graph nodes for readability, made seed colors theme-aware, persisted seeds per-node from tree data, fixed SVG layering, and improved splitter visibility.
+Enlarged all graph nodes for readability, made seed colors theme-aware, persisted seeds per-node from tree data, fixed SVG layering, improved splitter visibility, and fixed seed-paragraph overlap with a post-layout spacing pass.
 
 ### Before (issues addressed)
 
-![Nodes too small, seed colors invisible in light mode, seeds only on last active node](../../../00-supporting-files/images/02-15-SUMMARY/20260214021104.png)
-
+![Nodes too small, seed colors invisible in light mode, seeds only on last active node](../../../00-supporting-files/images/02-CONTEXT/20260214021104.png)
+![](../../../00-supporting-files/images/02-CONTEXT/20260214021307.png)
+![](../../../00-supporting-files/images/02-CONTEXT/20260214021537.png)
 ### Changes
 
 **NodeGraph.svelte — Increased sizes:**
@@ -36,9 +37,18 @@ Enlarged all graph nodes for readability, made seed colors theme-aware, persiste
 - Light mode: dark amber (#b45309) / hover (#92400e) — high contrast against white
 - Splitpanes splitter now uses `var(--border-color)` for theme-awareness
 
+**NodeGraph.svelte — Seed overlap fix:**
+- Added post-layout pass after d3 tree computation: for each node with seeds, pushes all child subtrees down by `SEED_EXTRA` (seed offset + seed radius + gap) so seed rows don't collide with the next paragraph level
+- Uses recursive `pushSubtreeDown()` to shift entire subtrees, preserving relative positions
+
+### After
+
+![Seed nodes properly spaced below parent paragraph nodes, no overlap](../../../00-supporting-files/images/02-CONTEXT/20260214022435.png)
+
 ### Commits
 
 - **webapp-ui branch:** `9bb37be` — feat: enlarge graph nodes, persist seeds per-node, theme-aware seed colors, fix SVG layering
+- **webapp-ui branch:** `a575dc3` — fix: push child nodes down when parent has seeds to prevent overlap
 
 ### Decisions
 
