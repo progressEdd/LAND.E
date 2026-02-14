@@ -4,17 +4,16 @@
 	import { graphState } from '$lib/stores/graph.svelte';
 	import { storyState } from '$lib/stores/story.svelte';
 	import { generationState } from '$lib/stores/generation.svelte';
-	import type { TreeNode } from '$lib/types';
+	import type { TreeNode, CharacterSummary } from '$lib/types';
 
 	// ---- Layout constants ----
-	const NODE_W = 120;
-	const NODE_H = 36;
-	const NODE_RX = 6;
-	const NODE_SPACING_X = 140;
-	const NODE_SPACING_Y = 72;
-	const PADDING = 40;
-	const BADGE_R = 5;
-	const MAX_BADGES = 4;
+	const P_RADIUS = 14;                // paragraph node radius
+	const CHAR_RADIUS = 18;             // character supernode radius
+	const TREE_SPACING_X = 50;          // horizontal gap between sibling branches
+	const TREE_SPACING_Y = 52;          // vertical gap between tree levels
+	const CHAR_COLUMN_X_OFFSET = 120;   // character column offset from rightmost paragraph node
+	const CHAR_SPACING_Y = 48;          // vertical gap between character supernodes
+	const PADDING = 30;
 
 	// ---- Character color palette (10 distinct hues) ----
 	const PALETTE = [
@@ -52,57 +51,147 @@
 		prevStatus = status;
 	});
 
-	// ---- Computed layout ----
+	// ---- Types ----
 	type LayoutNode = HierarchyPointNode<TreeNode>;
 
-	interface LayoutResult {
-		nodes: LayoutNode[];
-		links: { source: LayoutNode; target: LayoutNode }[];
-		width: number;
-		height: number;
-		offsetX: number;
-		offsetY: number;
+	interface PositionedParagraph {
+		id: string;
+		x: number;
+		y: number;
+		position: number;
+		content: string;
+		isActive: boolean;
+		isDraft: boolean;
+		isGenerating: boolean;
+		characterNames: string[];
 	}
 
-	const layout = $derived.by((): LayoutResult | null => {
+	interface PositionedCharacter {
+		name: string;
+		x: number;
+		y: number;
+		color: string;
+		nodeIds: string[];
+	}
+
+	interface TreeEdge {
+		x1: number; y1: number;
+		x2: number; y2: number;
+		isActive: boolean;
+	}
+
+	interface CharEdge {
+		px: number; py: number; // paragraph position
+		cx: number; cy: number; // character position
+		color: string;
+	}
+
+	interface GraphLayout {
+		paragraphs: PositionedParagraph[];
+		characters: PositionedCharacter[];
+		treeEdges: TreeEdge[];
+		charEdges: CharEdge[];
+		width: number;
+		height: number;
+	}
+
+	// ---- Computed layout ----
+	const activePathSet = $derived(
+		new Set(graphState.treeData?.active_path ?? [])
+	);
+
+	function getCharacterColor(name: string, characters: CharacterSummary[]): string {
+		const sorted = [...characters].sort((a, b) => a.name.localeCompare(b.name));
+		const idx = sorted.findIndex((c) => c.name === name);
+		return PALETTE[idx >= 0 ? idx % PALETTE.length : 0];
+	}
+
+	const layout = $derived.by((): GraphLayout | null => {
 		const td = graphState.treeData;
 		if (!td || !td.root) return null;
 
+		// 1. Use d3-hierarchy to compute tree positions for paragraph nodes
 		const root = hierarchy(td.root, (d) => d.children);
-		const treeLayout = d3tree<TreeNode>().nodeSize([NODE_SPACING_X, NODE_SPACING_Y]);
+		const treeLayout = d3tree<TreeNode>().nodeSize([TREE_SPACING_X, TREE_SPACING_Y]);
 		treeLayout(root);
 
-		const nodes = root.descendants() as LayoutNode[];
+		const descendants = root.descendants() as LayoutNode[];
 		const links = root.links() as { source: LayoutNode; target: LayoutNode }[];
 
-		// Compute bounds
+		// Compute tree bounds for offset
 		let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-		for (const n of nodes) {
+		for (const n of descendants) {
 			if (n.x < minX) minX = n.x;
 			if (n.x > maxX) maxX = n.x;
 			if (n.y < minY) minY = n.y;
 			if (n.y > maxY) maxY = n.y;
 		}
 
-		const w = maxX - minX + NODE_W + PADDING * 2;
-		const h = maxY - minY + NODE_H + PADDING * 2;
-		const offsetX = -minX + NODE_W / 2 + PADDING;
-		const offsetY = -minY + NODE_H / 2 + PADDING;
+		const ox = -minX + PADDING + P_RADIUS;
+		const oy = -minY + PADDING + P_RADIUS;
 
-		return { nodes, links, width: w, height: h, offsetX, offsetY };
+		// 2. Build positioned paragraphs
+		const paragraphs: PositionedParagraph[] = descendants.map((n) => ({
+			id: n.data.id,
+			x: n.x + ox,
+			y: n.y + oy,
+			position: n.depth,
+			content: n.data.content,
+			isActive: activePathSet.has(n.data.id),
+			isDraft: n.data.is_draft,
+			isGenerating: n.data.is_draft && generationState.isGenerating,
+			characterNames: (n.data.character_mentions ?? []).map((m) => m.character_name),
+		}));
+
+		// 3. Build tree edges
+		const treeEdges: TreeEdge[] = links.map((l) => ({
+			x1: l.source.x + ox,
+			y1: l.source.y + oy,
+			x2: l.target.x + ox,
+			y2: l.target.y + oy,
+			isActive: activePathSet.has(l.source.data.id) && activePathSet.has(l.target.data.id),
+		}));
+
+		// 4. Position character supernodes in a column to the right
+		const treeRight = maxX + ox + P_RADIUS;
+		const charX = treeRight + CHAR_COLUMN_X_OFFSET;
+		const totalCharHeight = (td.characters.length - 1) * CHAR_SPACING_Y;
+		const treeHeight = maxY - minY;
+		const charStartY = oy + (treeHeight - totalCharHeight) / 2; // center vertically
+
+		const charMap = new Map<string, PositionedCharacter>();
+		const characters: PositionedCharacter[] = td.characters.map((c, i) => {
+			const pc: PositionedCharacter = {
+				name: c.name,
+				x: charX,
+				y: Math.max(PADDING + CHAR_RADIUS, charStartY + i * CHAR_SPACING_Y),
+				color: getCharacterColor(c.name, td.characters),
+				nodeIds: c.node_ids,
+			};
+			charMap.set(c.name, pc);
+			return pc;
+		});
+
+		// 5. Build cross-edges from paragraphs to their characters
+		const charEdges: CharEdge[] = [];
+		for (const p of paragraphs) {
+			for (const cname of p.characterNames) {
+				const c = charMap.get(cname);
+				if (c) {
+					charEdges.push({ px: p.x, py: p.y, cx: c.x, cy: c.y, color: c.color });
+				}
+			}
+		}
+
+		// 6. Compute total SVG dimensions
+		const rightmost = characters.length > 0 ? charX + CHAR_RADIUS + PADDING : treeRight + PADDING;
+		const bottomPara = Math.max(...paragraphs.map((p) => p.y)) + P_RADIUS + PADDING;
+		const bottomChar = characters.length > 0 ? Math.max(...characters.map((c) => c.y)) + CHAR_RADIUS + PADDING : 0;
+		const w = rightmost;
+		const h = Math.max(bottomPara, bottomChar, 100);
+
+		return { paragraphs, characters, treeEdges, charEdges, width: w, height: h };
 	});
-
-	const activePathSet = $derived(
-		new Set(graphState.treeData?.active_path ?? [])
-	);
-
-	// ---- Character color mapping ----
-	function getCharacterColor(name: string): string {
-		const chars = graphState.treeData?.characters ?? [];
-		const sorted = [...chars].sort((a, b) => a.name.localeCompare(b.name));
-		const idx = sorted.findIndex((c) => c.name === name);
-		return PALETTE[idx >= 0 ? idx % PALETTE.length : 0];
-	}
 
 	// ---- Helpers ----
 	function truncate(text: string, max: number): string {
@@ -110,28 +199,15 @@
 		return text.slice(0, max - 1) + '\u2026';
 	}
 
-	function edgePath(source: LayoutNode, target: LayoutNode, ox: number, oy: number): string {
-		const sx = source.x + ox;
-		const sy = source.y + oy + NODE_H / 2;
-		const tx = target.x + ox;
-		const ty = target.y + oy - NODE_H / 2;
-		const my = (sy + ty) / 2;
-		return `M ${sx} ${sy} C ${sx} ${my}, ${tx} ${my}, ${tx} ${ty}`;
-	}
-
 	function handleNodeClick(nodeId: string): void {
-		if (activePathSet.has(nodeId)) return; // already on active path
+		if (activePathSet.has(nodeId)) return;
 		const storyId = storyState.activeStoryId;
 		if (!storyId) return;
 		graphState.switchBranch(storyId, nodeId);
 	}
-
-	// ---- Container sizing ----
-	let containerW = $state(0);
-	let containerH = $state(0);
 </script>
 
-<div class="node-graph" bind:clientWidth={containerW} bind:clientHeight={containerH}>
+<div class="node-graph">
 	{#if graphState.isLoading}
 		<div class="graph-status">
 			<div class="spinner"></div>
@@ -150,114 +226,92 @@
 			<p class="hint">No nodes yet &mdash; generate some content first</p>
 		</div>
 	{:else}
-		<!-- SVG Tree Graph -->
-		<svg
-			class="tree-svg"
-			viewBox="0 0 {layout.width} {layout.height}"
-			preserveAspectRatio="xMidYMid meet"
-		>
-			<!-- Edges -->
-			{#each layout.links as link (link.source.data.id + '-' + link.target.data.id)}
-				<path
-					class="edge"
-					class:edge-active={activePathSet.has(link.source.data.id) && activePathSet.has(link.target.data.id)}
-					d={edgePath(link.source, link.target, layout.offsetX, layout.offsetY)}
-				/>
-			{/each}
-
-			<!-- Nodes -->
-			{#each layout.nodes as node (node.data.id)}
-				{@const nx = node.x + layout.offsetX - NODE_W / 2}
-				{@const ny = node.y + layout.offsetY - NODE_H / 2}
-				{@const isActive = activePathSet.has(node.data.id)}
-				{@const isDraft = node.data.is_draft}
-				{@const isGenerating = isDraft && generationState.isGenerating}
-				{@const mentions = node.data.character_mentions ?? []}
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<g
-					class="node-group"
-					class:node-clickable={!isActive}
-					onclick={() => handleNodeClick(node.data.id)}
-				>
-					<!-- Node rectangle -->
-					<rect
-						x={nx}
-						y={ny}
-						width={NODE_W}
-						height={NODE_H}
-						rx={NODE_RX}
-						class="node-rect"
-						class:node-active={isActive}
-						class:node-branch={!isActive && !isDraft}
-						class:node-draft={isDraft}
-						class:node-generating={isGenerating}
+		<div class="graph-scroll">
+			<svg
+				class="graph-svg"
+				width={layout.width}
+				height={layout.height}
+				viewBox="0 0 {layout.width} {layout.height}"
+			>
+				<!-- Character cross-edges (draw first, behind everything) -->
+				{#each layout.charEdges as ce, i (i)}
+					<line
+						x1={ce.px} y1={ce.py}
+						x2={ce.cx} y2={ce.cy}
+						class="char-edge"
+						stroke={ce.color}
 					/>
-
-					<!-- Position label -->
-					<text
-						x={nx + 8}
-						y={ny + NODE_H / 2 + 1}
-						class="node-position"
-						dominant-baseline="middle"
-					>
-						{node.data.position}
-					</text>
-
-					<!-- Content preview -->
-					<text
-						x={nx + 24}
-						y={ny + NODE_H / 2 + 1}
-						class="node-label"
-						class:label-active={isActive}
-						dominant-baseline="middle"
-					>
-						{truncate(node.data.content, 14)}
-					</text>
-
-					<!-- Character badges -->
-					{#if mentions.length > 0}
-						{@const visibleBadges = mentions.slice(0, MAX_BADGES)}
-						{#each visibleBadges as mention, i (mention.character_name)}
-							<circle
-								cx={nx + 10 + i * (BADGE_R * 2 + 3)}
-								cy={ny + NODE_H + BADGE_R + 3}
-								r={BADGE_R}
-								fill={getCharacterColor(mention.character_name)}
-								class="badge"
-							>
-								<title>{mention.character_name}{mention.role ? ` — ${mention.role}` : ''}</title>
-							</circle>
-						{/each}
-						{#if mentions.length > MAX_BADGES}
-							<text
-								x={nx + 10 + MAX_BADGES * (BADGE_R * 2 + 3)}
-								y={ny + NODE_H + BADGE_R + 4}
-								class="badge-overflow"
-								dominant-baseline="middle"
-							>
-								+{mentions.length - MAX_BADGES}
-							</text>
-						{/if}
-					{/if}
-
-					<!-- Tooltip on hover -->
-					<title>{node.data.content}</title>
-				</g>
-			{/each}
-		</svg>
-
-		<!-- Character legend -->
-		{#if graphState.treeData && graphState.treeData.characters.length > 0}
-			<div class="character-legend">
-				{#each graphState.treeData.characters as char (char.name)}
-					<span class="legend-item">
-						<span class="legend-dot" style="background-color: {getCharacterColor(char.name)}"></span>
-						{char.name}
-					</span>
 				{/each}
-			</div>
-		{/if}
+
+				<!-- Tree edges (paragraph flow) -->
+				{#each layout.treeEdges as te, i (i)}
+					<line
+						x1={te.x1} y1={te.y1}
+						x2={te.x2} y2={te.y2}
+						class="tree-edge"
+						class:tree-edge-active={te.isActive}
+					/>
+				{/each}
+
+				<!-- Paragraph nodes -->
+				{#each layout.paragraphs as p (p.id)}
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<g
+						class="para-group"
+						class:para-clickable={!p.isActive}
+						onclick={() => handleNodeClick(p.id)}
+					>
+						<circle
+							cx={p.x} cy={p.y} r={P_RADIUS}
+							class="para-circle"
+							class:para-active={p.isActive}
+							class:para-branch={!p.isActive && !p.isDraft}
+							class:para-draft={p.isDraft}
+							class:para-generating={p.isGenerating}
+						/>
+						<text
+							x={p.x} y={p.y + 1}
+							class="para-label"
+							class:para-label-active={p.isActive}
+							text-anchor="middle"
+							dominant-baseline="middle"
+						>
+							{p.position + 1}
+						</text>
+						<title>{p.content}</title>
+					</g>
+				{/each}
+
+				<!-- Character supernodes -->
+				{#each layout.characters as c (c.name)}
+					<g class="char-group">
+						<circle
+							cx={c.x} cy={c.y} r={CHAR_RADIUS}
+							fill={c.color}
+							class="char-circle"
+						/>
+						<text
+							x={c.x} y={c.y + 1}
+							class="char-label"
+							text-anchor="middle"
+							dominant-baseline="middle"
+						>
+							{truncate(c.name, 3).toUpperCase()}
+						</text>
+						<text
+							x={c.x + CHAR_RADIUS + 6}
+							y={c.y + 1}
+							class="char-name"
+							dominant-baseline="middle"
+						>
+							{c.name}
+						</text>
+						<title>{c.name} — appears in {c.nodeIds.length} paragraph{c.nodeIds.length !== 1 ? 's' : ''}</title>
+					</g>
+				{/each}
+			</svg>
+		</div>
 	{/if}
 </div>
 
@@ -269,9 +323,19 @@
 		width: 100%;
 		background-color: var(--panel-bg, #030712);
 		overflow: hidden;
-		position: relative;
 	}
 
+	.graph-scroll {
+		flex: 1;
+		overflow: auto;
+		min-height: 0;
+	}
+
+	.graph-svg {
+		display: block;
+	}
+
+	/* Status / empty states */
 	.graph-status {
 		display: flex;
 		flex-direction: column;
@@ -304,126 +368,102 @@
 		to { transform: rotate(360deg); }
 	}
 
-	/* SVG tree */
-	.tree-svg {
-		flex: 1;
-		min-height: 0;
-		width: 100%;
-	}
-
-	/* Edges */
-	.edge {
-		fill: none;
+	/* ---- Tree edges (paragraph→paragraph) ---- */
+	.tree-edge {
 		stroke: var(--text-faint, #4b5563);
 		stroke-width: 1.5;
-		opacity: 0.4;
+		opacity: 0.3;
 	}
 
-	.edge-active {
+	.tree-edge-active {
 		stroke: #6366f1;
 		stroke-width: 2;
 		opacity: 1;
 	}
 
-	/* Node rectangles */
-	.node-rect {
+	/* ---- Character cross-edges (paragraph→character) ---- */
+	.char-edge {
+		stroke-width: 1;
+		opacity: 0.18;
+	}
+
+	/* ---- Paragraph nodes ---- */
+	.para-circle {
 		fill: var(--hover-bg, #1f2937);
 		stroke: var(--border-color, #374151);
-		stroke-width: 1;
+		stroke-width: 1.5;
 		transition: fill 150ms ease, stroke 150ms ease;
 	}
 
-	.node-active {
+	.para-active {
 		fill: #6366f1;
 		stroke: #818cf8;
 	}
 
-	.node-branch {
-		opacity: 0.6;
+	.para-branch {
+		opacity: 0.5;
 	}
 
-	.node-draft {
-		stroke-dasharray: 4 3;
+	.para-draft {
+		stroke-dasharray: 3 2;
 		stroke: #fbbf24;
 		fill: #292524;
 	}
 
-	.node-generating {
+	.para-generating {
 		animation: pulse 1.5s ease-in-out infinite;
 	}
 
 	@keyframes pulse {
-		0%, 100% { opacity: 0.6; }
+		0%, 100% { opacity: 0.5; }
 		50% { opacity: 1; }
 	}
 
-	/* Node text */
-	.node-position {
-		fill: var(--text-faint, #6b7280);
+	.para-label {
+		fill: var(--text-muted, #9ca3af);
 		font-size: 10px;
 		font-weight: 600;
 		font-family: monospace;
 		pointer-events: none;
 	}
 
-	.node-label {
-		fill: var(--text-secondary, #d1d5db);
+	.para-label-active {
+		fill: #ffffff;
+	}
+
+	.para-clickable {
+		cursor: pointer;
+	}
+
+	.para-clickable:hover .para-circle:not(.para-active) {
+		fill: var(--border-color, #374151);
+		stroke: #6366f1;
+	}
+
+	/* ---- Character supernodes ---- */
+	.char-circle {
+		opacity: 0.85;
+		stroke: var(--panel-bg, #030712);
+		stroke-width: 2;
+	}
+
+	.char-label {
+		fill: #ffffff;
+		font-size: 8px;
+		font-weight: 700;
+		font-family: monospace;
+		pointer-events: none;
+		letter-spacing: 0.5px;
+	}
+
+	.char-name {
+		fill: var(--text-muted, #9ca3af);
 		font-size: 10px;
 		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 		pointer-events: none;
 	}
 
-	.label-active {
-		fill: #ffffff;
-		font-weight: 500;
-	}
-
-	/* Interaction */
-	.node-clickable {
-		cursor: pointer;
-	}
-
-	.node-clickable:hover .node-rect:not(.node-active) {
-		fill: var(--border-color, #374151);
-		stroke: #6366f1;
-	}
-
-	/* Character badges */
-	.badge {
-		opacity: 0.85;
-		stroke: var(--panel-bg, #030712);
-		stroke-width: 1;
-	}
-
-	.badge-overflow {
-		fill: var(--text-faint, #6b7280);
-		font-size: 8px;
-		font-family: monospace;
-		pointer-events: none;
-	}
-
-	/* Character legend */
-	.character-legend {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 8px;
-		padding: 8px 12px;
-		border-top: 1px solid var(--border-color, #374151);
-		background-color: var(--sidebar-bg, #111827);
-		font-size: 11px;
-		color: var(--text-muted, #9ca3af);
-	}
-
-	.legend-item {
-		display: flex;
-		align-items: center;
-		gap: 4px;
-	}
-
-	.legend-dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		flex-shrink: 0;
+	.char-group {
+		cursor: default;
 	}
 </style>

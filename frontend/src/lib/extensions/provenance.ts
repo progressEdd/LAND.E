@@ -2,11 +2,15 @@ import { Mark } from '@tiptap/core';
 
 export type ProvenanceSource = 'ai_generated' | 'user_written' | 'user_edited' | 'initial_prompt';
 
-export const PROVENANCE_COLORS: Record<ProvenanceSource, string> = {
-	ai_generated: 'rgba(255, 255, 255, 0.9)',
-	user_written: 'rgba(100, 149, 237, 0.9)',
-	user_edited: 'rgba(255, 182, 193, 0.9)',
-	initial_prompt: 'rgba(255, 253, 208, 0.9)',
+/**
+ * Provenance styling: subtle background tints that work in both dark and light themes.
+ * Text color inherits from the editor's theme; provenance is indicated by background only.
+ */
+export const PROVENANCE_STYLES: Record<ProvenanceSource, string> = {
+	ai_generated: 'background-color: rgba(139, 92, 246, 0.12)',     // violet tint
+	user_written: 'background-color: rgba(59, 130, 246, 0.12)',     // blue tint
+	user_edited: 'background-color: rgba(244, 114, 182, 0.15)',     // pink tint
+	initial_prompt: 'background-color: rgba(251, 191, 36, 0.12)',   // amber tint
 };
 
 export const Provenance = Mark.create({
@@ -19,7 +23,7 @@ export const Provenance = Mark.create({
 				parseHTML: (element: HTMLElement) => element.getAttribute('data-source') as ProvenanceSource,
 				renderHTML: (attributes: Record<string, string>) => ({
 					'data-source': attributes.source,
-					style: `color: ${PROVENANCE_COLORS[attributes.source as ProvenanceSource] || 'inherit'}`,
+					style: `${PROVENANCE_STYLES[attributes.source as ProvenanceSource] || ''}; border-radius: 2px; padding: 0 1px`,
 				}),
 			},
 		};
