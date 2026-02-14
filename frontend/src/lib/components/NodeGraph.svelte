@@ -205,6 +205,121 @@
 		if (!storyId) return;
 		graphState.switchBranch(storyId, nodeId);
 	}
+
+	// ---- Tooltip state ----
+	interface TooltipData {
+		x: number;
+		y: number;
+		title: string;
+		body: string;
+		color?: string;
+	}
+
+	let tooltip = $state<TooltipData | null>(null);
+	let graphScrollEl = $state<HTMLDivElement | null>(null);
+
+	function showParaTooltip(e: MouseEvent, p: PositionedParagraph): void {
+		const rect = graphScrollEl?.getBoundingClientRect();
+		if (!rect) return;
+		const chars = p.characterNames.length > 0 ? `Characters: ${p.characterNames.join(', ')}` : 'No characters';
+		tooltip = {
+			x: e.clientX - rect.left + graphScrollEl!.scrollLeft,
+			y: e.clientY - rect.top + graphScrollEl!.scrollTop,
+			title: `Paragraph ${p.position + 1}`,
+			body: `${truncate(p.content, 200)}\n\n${chars}`,
+		};
+	}
+
+	function showCharTooltip(e: MouseEvent, c: PositionedCharacter): void {
+		const rect = graphScrollEl?.getBoundingClientRect();
+		if (!rect) return;
+		tooltip = {
+			x: e.clientX - rect.left + graphScrollEl!.scrollLeft,
+			y: e.clientY - rect.top + graphScrollEl!.scrollTop,
+			title: c.name,
+			body: `Appears in ${c.nodeIds.length} paragraph${c.nodeIds.length !== 1 ? 's' : ''}`,
+			color: c.color,
+		};
+	}
+
+	function hideTooltip(): void {
+		tooltip = null;
+	}
+
+	// ---- Zoom & Pan state ----
+	let scale = $state(1);
+	let panX = $state(0);
+	let panY = $state(0);
+	let isPanning = $state(false);
+	let panStartX = $state(0);
+	let panStartY = $state(0);
+	let panStartPanX = $state(0);
+	let panStartPanY = $state(0);
+
+	const MIN_SCALE = 0.3;
+	const MAX_SCALE = 3;
+	const ZOOM_FACTOR = 0.001;
+
+	// Reset zoom/pan when tree data changes
+	$effect(() => {
+		if (graphState.treeData) {
+			scale = 1;
+			panX = 0;
+			panY = 0;
+		}
+	});
+
+	function handleWheel(e: WheelEvent): void {
+		e.preventDefault();
+		const rect = graphScrollEl?.getBoundingClientRect();
+		if (!rect) return;
+
+		// Mouse position relative to the scroll container
+		const mx = e.clientX - rect.left;
+		const my = e.clientY - rect.top;
+
+		// Point in graph space under the cursor before zoom
+		const gxBefore = (mx - panX) / scale;
+		const gyBefore = (my - panY) / scale;
+
+		// Apply zoom
+		const delta = -e.deltaY * ZOOM_FACTOR;
+		const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * (1 + delta)));
+		scale = newScale;
+
+		// Adjust pan so the point under the cursor stays fixed
+		panX = mx - gxBefore * newScale;
+		panY = my - gyBefore * newScale;
+	}
+
+	function handlePointerDown(e: PointerEvent): void {
+		// Middle mouse or left mouse on empty area
+		if (e.button === 1 || (e.button === 0 && e.target === graphScrollEl?.querySelector('.graph-svg'))) {
+			isPanning = true;
+			panStartX = e.clientX;
+			panStartY = e.clientY;
+			panStartPanX = panX;
+			panStartPanY = panY;
+			(e.currentTarget as HTMLElement)?.setPointerCapture(e.pointerId);
+			e.preventDefault();
+		}
+	}
+
+	function handlePointerMove(e: PointerEvent): void {
+		if (!isPanning) return;
+		panX = panStartPanX + (e.clientX - panStartX);
+		panY = panStartPanY + (e.clientY - panStartY);
+	}
+
+	function handlePointerUp(): void {
+		isPanning = false;
+	}
+
+	function resetView(): void {
+		scale = 1;
+		panX = 0;
+		panY = 0;
+	}
 </script>
 
 <div class="node-graph">
@@ -226,91 +341,131 @@
 			<p class="hint">No nodes yet &mdash; generate some content first</p>
 		</div>
 	{:else}
-		<div class="graph-scroll">
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="graph-viewport"
+			bind:this={graphScrollEl}
+			onwheel={handleWheel}
+			onpointerdown={handlePointerDown}
+			onpointermove={handlePointerMove}
+			onpointerup={handlePointerUp}
+			onpointerleave={handlePointerUp}
+			class:viewport-panning={isPanning}
+		>
 			<svg
 				class="graph-svg"
-				width={layout.width}
-				height={layout.height}
-				viewBox="0 0 {layout.width} {layout.height}"
+				width="100%"
+				height="100%"
 			>
-				<!-- Character cross-edges (draw first, behind everything) -->
-				{#each layout.charEdges as ce, i (i)}
-					<line
-						x1={ce.px} y1={ce.py}
-						x2={ce.cx} y2={ce.cy}
-						class="char-edge"
-						stroke={ce.color}
-					/>
-				{/each}
-
-				<!-- Tree edges (paragraph flow) -->
-				{#each layout.treeEdges as te, i (i)}
-					<line
-						x1={te.x1} y1={te.y1}
-						x2={te.x2} y2={te.y2}
-						class="tree-edge"
-						class:tree-edge-active={te.isActive}
-					/>
-				{/each}
-
-				<!-- Paragraph nodes -->
-				{#each layout.paragraphs as p (p.id)}
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<g
-						class="para-group"
-						class:para-clickable={!p.isActive}
-						onclick={() => handleNodeClick(p.id)}
-					>
-						<circle
-							cx={p.x} cy={p.y} r={P_RADIUS}
-							class="para-circle"
-							class:para-active={p.isActive}
-							class:para-branch={!p.isActive && !p.isDraft}
-							class:para-draft={p.isDraft}
-							class:para-generating={p.isGenerating}
+				<g transform="translate({panX}, {panY}) scale({scale})">
+					<!-- Character cross-edges (draw first, behind everything) -->
+					{#each layout.charEdges as ce, i (i)}
+						<line
+							x1={ce.px} y1={ce.py}
+							x2={ce.cx} y2={ce.cy}
+							class="char-edge"
+							stroke={ce.color}
 						/>
-						<text
-							x={p.x} y={p.y + 1}
-							class="para-label"
-							class:para-label-active={p.isActive}
-							text-anchor="middle"
-							dominant-baseline="middle"
-						>
-							{p.position + 1}
-						</text>
-						<title>{p.content}</title>
-					</g>
-				{/each}
+					{/each}
 
-				<!-- Character supernodes -->
-				{#each layout.characters as c (c.name)}
-					<g class="char-group">
-						<circle
-							cx={c.x} cy={c.y} r={CHAR_RADIUS}
-							fill={c.color}
-							class="char-circle"
+					<!-- Tree edges (paragraph flow) -->
+					{#each layout.treeEdges as te, i (i)}
+						<line
+							x1={te.x1} y1={te.y1}
+							x2={te.x2} y2={te.y2}
+							class="tree-edge"
+							class:tree-edge-active={te.isActive}
 						/>
-						<text
-							x={c.x} y={c.y + 1}
-							class="char-label"
-							text-anchor="middle"
-							dominant-baseline="middle"
+					{/each}
+
+					<!-- Paragraph nodes -->
+					{#each layout.paragraphs as p (p.id)}
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<g
+							class="para-group"
+							class:para-clickable={!p.isActive}
+							onclick={() => handleNodeClick(p.id)}
+							onmouseenter={(e) => showParaTooltip(e, p)}
+							onmouseleave={hideTooltip}
 						>
-							{truncate(c.name, 3).toUpperCase()}
-						</text>
-						<text
-							x={c.x + CHAR_RADIUS + 6}
-							y={c.y + 1}
-							class="char-name"
-							dominant-baseline="middle"
+							<circle
+								cx={p.x} cy={p.y} r={P_RADIUS}
+								class="para-circle"
+								class:para-active={p.isActive}
+								class:para-branch={!p.isActive && !p.isDraft}
+								class:para-draft={p.isDraft}
+								class:para-generating={p.isGenerating}
+							/>
+							<text
+								x={p.x} y={p.y + 1}
+								class="para-label"
+								class:para-label-active={p.isActive}
+								text-anchor="middle"
+								dominant-baseline="middle"
+							>
+								{p.position + 1}
+							</text>
+						</g>
+					{/each}
+
+					<!-- Character supernodes -->
+					{#each layout.characters as c (c.name)}
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<g
+							class="char-group"
+							onmouseenter={(e) => showCharTooltip(e, c)}
+							onmouseleave={hideTooltip}
 						>
-							{c.name}
-						</text>
-						<title>{c.name} — appears in {c.nodeIds.length} paragraph{c.nodeIds.length !== 1 ? 's' : ''}</title>
-					</g>
-				{/each}
+							<circle
+								cx={c.x} cy={c.y} r={CHAR_RADIUS}
+								fill={c.color}
+								class="char-circle"
+							/>
+							<text
+								x={c.x} y={c.y + 1}
+								class="char-label"
+								text-anchor="middle"
+								dominant-baseline="middle"
+							>
+								{truncate(c.name, 3).toUpperCase()}
+							</text>
+							<text
+								x={c.x + CHAR_RADIUS + 6}
+								y={c.y + 1}
+								class="char-name"
+								dominant-baseline="middle"
+							>
+								{c.name}
+							</text>
+						</g>
+					{/each}
+				</g>
 			</svg>
+
+			<!-- Custom tooltip -->
+			{#if tooltip}
+				<div
+					class="graph-tooltip"
+					style="left: {tooltip.x + 12}px; top: {tooltip.y - 8}px"
+				>
+					<div class="tooltip-title">
+						{#if tooltip.color}
+							<span class="tooltip-dot" style="background-color: {tooltip.color}"></span>
+						{/if}
+						{tooltip.title}
+					</div>
+					<div class="tooltip-body">{tooltip.body}</div>
+				</div>
+			{/if}
+		</div>
+
+		<!-- Zoom controls -->
+		<div class="zoom-controls">
+			<button class="zoom-btn" onclick={() => { scale = Math.min(MAX_SCALE, scale * 1.25); }} title="Zoom in">+</button>
+			<button class="zoom-btn" onclick={() => { scale = Math.max(MIN_SCALE, scale * 0.8); }} title="Zoom out">&minus;</button>
+			<button class="zoom-btn zoom-reset" onclick={resetView} title="Reset view">1:1</button>
+			<span class="zoom-level">{Math.round(scale * 100)}%</span>
 		</div>
 	{/if}
 </div>
@@ -323,16 +478,25 @@
 		width: 100%;
 		background-color: var(--panel-bg, #030712);
 		overflow: hidden;
+		position: relative;
 	}
 
-	.graph-scroll {
+	.graph-viewport {
 		flex: 1;
-		overflow: auto;
+		overflow: hidden;
 		min-height: 0;
+		position: relative;
+		cursor: grab;
+	}
+
+	.viewport-panning {
+		cursor: grabbing;
 	}
 
 	.graph-svg {
 		display: block;
+		width: 100%;
+		height: 100%;
 	}
 
 	/* Status / empty states */
@@ -368,7 +532,7 @@
 		to { transform: rotate(360deg); }
 	}
 
-	/* ---- Tree edges (paragraph→paragraph) ---- */
+	/* ---- Tree edges (paragraph->paragraph) ---- */
 	.tree-edge {
 		stroke: var(--text-faint, #4b5563);
 		stroke-width: 1.5;
@@ -381,7 +545,7 @@
 		opacity: 1;
 	}
 
-	/* ---- Character cross-edges (paragraph→character) ---- */
+	/* ---- Character cross-edges (paragraph->character) ---- */
 	.char-edge {
 		stroke-width: 1;
 		opacity: 0.18;
@@ -465,5 +629,91 @@
 
 	.char-group {
 		cursor: default;
+	}
+
+	/* ---- Custom tooltip ---- */
+	.graph-tooltip {
+		position: absolute;
+		pointer-events: none;
+		z-index: 10;
+		max-width: 280px;
+		background: var(--sidebar-bg, #111827);
+		border: 1px solid var(--border-color, #374151);
+		border-radius: 6px;
+		padding: 8px 10px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+	}
+
+	.tooltip-title {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 11px;
+		font-weight: 600;
+		color: var(--text-primary, #e5e7eb);
+		margin-bottom: 4px;
+	}
+
+	.tooltip-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		flex-shrink: 0;
+	}
+
+	.tooltip-body {
+		font-size: 10px;
+		color: var(--text-muted, #9ca3af);
+		line-height: 1.4;
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
+	/* ---- Zoom controls ---- */
+	.zoom-controls {
+		position: absolute;
+		bottom: 8px;
+		right: 8px;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		z-index: 5;
+	}
+
+	.zoom-btn {
+		width: 26px;
+		height: 26px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--sidebar-bg, #111827);
+		border: 1px solid var(--border-color, #374151);
+		border-radius: 4px;
+		color: var(--text-muted, #9ca3af);
+		font-size: 13px;
+		font-weight: 600;
+		cursor: pointer;
+		padding: 0;
+		line-height: 1;
+	}
+
+	.zoom-btn:hover {
+		background: var(--hover-bg, #1f2937);
+		color: var(--text-primary, #e5e7eb);
+	}
+
+	.zoom-reset {
+		width: auto;
+		padding: 0 6px;
+		font-size: 10px;
+		font-family: monospace;
+	}
+
+	.zoom-level {
+		font-size: 10px;
+		font-family: monospace;
+		color: var(--text-faint, #6b7280);
+		min-width: 32px;
+		text-align: right;
 	}
 </style>
