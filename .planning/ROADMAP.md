@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Template Preparation** - README template with placeholder variables on `00-experiments`
 - [x] **Phase 2: Branch Creation Flow** - Complete new-project workflow from branch creation through ready-to-code state
 - [x] **Phase 3: Root README Index** - Master branch README updated to list active experiments
-- [ ] **Phase 4: Webapp UI** - Purpose-built story writer webapp replacing the marimo notebook
+- [x] **Phase 4: Webapp UI** - Purpose-built story writer webapp replacing the marimo notebook
 
 ## Phase Details
 
@@ -85,7 +85,7 @@ Plans:
 - [x] 02-03-PLAN.md — Tiptap editor with custom provenance mark extension and toolbar
 - [x] 02-04-PLAN.md — REST API endpoints, frontend API client, settings panel
 - [x] 02-05-PLAN.md — WebSocket generation streaming, inline draft flow in editor
-- [ ] 02-06-PLAN.md — Analysis panel, markdown export, story loading, app polish
+- [x] 02-06-PLAN.md — Analysis panel, markdown export, story loading, app polish
 
 ## Progress
 
@@ -97,4 +97,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Template Preparation | 1/1 | Complete | 2026-02-13 |
 | 2. Branch Creation Flow | 1/1 | Complete | 2026-02-13 |
 | 3. Root README Index | 1/1 | Complete | 2026-02-13 |
-| 4. Webapp UI | 5/6 | In progress | — |
+| 4. Webapp UI | 6/6 | Complete | 2026-02-14 |
