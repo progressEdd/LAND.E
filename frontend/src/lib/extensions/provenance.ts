@@ -7,10 +7,10 @@ export type ProvenanceSource = 'ai_generated' | 'user_written' | 'user_edited' |
  * Text color inherits from the editor's theme; provenance is indicated by background only.
  */
 export const PROVENANCE_STYLES: Record<ProvenanceSource, string> = {
-	ai_generated: 'background-color: rgba(139, 92, 246, 0.12)',     // violet tint
-	user_written: 'background-color: rgba(59, 130, 246, 0.12)',     // blue tint
-	user_edited: 'background-color: rgba(244, 114, 182, 0.15)',     // pink tint
-	initial_prompt: 'background-color: rgba(251, 191, 36, 0.12)',   // amber tint
+	ai_generated: 'background-color: rgba(139, 92, 246, 0.22)',     // violet tint
+	user_written: 'background-color: rgba(59, 130, 246, 0.22)',     // blue tint
+	user_edited: 'background-color: rgba(244, 114, 182, 0.25)',     // pink tint
+	initial_prompt: 'background-color: rgba(251, 191, 36, 0.22)',   // amber tint
 };
 
 export const Provenance = Mark.create({

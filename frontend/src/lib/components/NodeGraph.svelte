@@ -11,7 +11,7 @@
 	const CHAR_RADIUS = 18;             // character supernode radius
 	const TREE_SPACING_X = 50;          // horizontal gap between sibling branches
 	const TREE_SPACING_Y = 52;          // vertical gap between tree levels
-	const CHAR_COLUMN_X_OFFSET = 120;   // character column offset from rightmost paragraph node
+	const CHAR_COLUMN_X_OFFSET = 60;    // character column offset from rightmost paragraph node
 	const CHAR_SPACING_Y = 48;          // vertical gap between character supernodes
 	const PADDING = 30;
 
@@ -430,14 +430,7 @@
 							>
 								{truncate(c.name, 3).toUpperCase()}
 							</text>
-							<text
-								x={c.x + CHAR_RADIUS + 6}
-								y={c.y + 1}
-								class="char-name"
-								dominant-baseline="middle"
-							>
-								{c.name}
-							</text>
+
 						</g>
 					{/each}
 				</g>
@@ -548,7 +541,7 @@
 	/* ---- Character cross-edges (paragraph->character) ---- */
 	.char-edge {
 		stroke-width: 1;
-		opacity: 0.18;
+		opacity: 0.38;
 	}
 
 	/* ---- Paragraph nodes ---- */
@@ -618,13 +611,6 @@
 		font-family: monospace;
 		pointer-events: none;
 		letter-spacing: 0.5px;
-	}
-
-	.char-name {
-		fill: var(--text-muted, #9ca3af);
-		font-size: 10px;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-		pointer-events: none;
 	}
 
 	.char-group {

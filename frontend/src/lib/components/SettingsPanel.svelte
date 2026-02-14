@@ -467,8 +467,8 @@
 	}
 
 	.story-item.active {
-		background-color: #1e1b4b;
-		border: 1px solid #4f46e5;
+		background-color: var(--active-story-bg, rgba(79, 70, 229, 0.15));
+		border: 1px solid var(--active-story-border, #6366f1);
 	}
 
 	.story-info {
