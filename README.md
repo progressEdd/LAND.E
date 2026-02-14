@@ -1,5 +1,5 @@
-# ai-invasion
-exploring making a local novel ai story writer
+# LAND.E
+Local AI Novel Drafting Environment making a local novel ai story writer
 
 ![ui](00-supporting-files/images/README/20251230052537.png)
 

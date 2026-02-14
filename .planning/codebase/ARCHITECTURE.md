@@ -17,7 +17,7 @@
 
 **Template Family (`master`, `development`):**
 - Purpose: Repository scaffolding, dev logs, supporting files, worktree container, GSD planning
-- Location: Root worktree at `/Users/progressedd/personal-projects/ai-invasion`
+- Location: Root worktree at `/Users/progressedd/personal-projects/LAND.E`
 - Contains: Numbered directories (`00-dev-log/`, `00-supporting-files/`, `01-dev-onboarding/`, `02-worktrees/`), `.planning/`, `.foam/`, `LICENSE`, root `README.md`
 - The `development` branch is the current active branch on the root worktree
 - The `master` branch has an older `03-app/` directory (removed from `development`)
@@ -131,7 +131,7 @@
 ## Entry Points
 
 **Root Worktree (template/scaffolding):**
-- Location: `/Users/progressedd/personal-projects/ai-invasion/`
+- Location: `/Users/progressedd/personal-projects/LAND.E/`
 - Branch: `development` (currently checked out)
 - Responsibilities: GSD planning, dev logs, supporting files, worktree management
 
@@ -168,7 +168,7 @@
 
 ## Multi-Remote Setup
 
-**`origin`:** `git@github.com-primary:progressEdd/ai-invasion.git` — the project repository
+**`origin`:** `git@github.com-primary:progressEdd/LAND.E.git` — the project repository
 **`template`:** `git@github.com-primary:progressEdd/project-template.git` — upstream template repo for inheriting worktree infrastructure updates
 
 The `template` remote enables pulling organizational improvements (worktree README updates, `.gitignore` changes) from the shared template repo while keeping project-specific content on `origin`.

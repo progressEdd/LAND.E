@@ -23,7 +23,7 @@
 - Fix approach: Update to a real description, e.g., `description = "Local AI story writer experiments using Ollama and Marimo"`.
 
 **Previous codebase docs committed then deleted:**
-- Issue: The `development` branch has 7 codebase analysis files (ARCHITECTURE.md, CONCERNS.md, CONVENTIONS.md, INTEGRATIONS.md, STACK.md, STRUCTURE.md, TESTING.md) in git history at HEAD, but they are staged as deleted in the working tree. These were written for the template repo context, not the current ai-invasion project. They are being replaced by this fresh analysis.
+- Issue: The `development` branch has 7 codebase analysis files (ARCHITECTURE.md, CONCERNS.md, CONVENTIONS.md, INTEGRATIONS.md, STACK.md, STRUCTURE.md, TESTING.md) in git history at HEAD, but they are staged as deleted in the working tree. These were written for the template repo context, not the current LAND.E project. They are being replaced by this fresh analysis.
 - Files: `.planning/codebase/ARCHITECTURE.md`, `.planning/codebase/CONCERNS.md`, `.planning/codebase/CONVENTIONS.md`, `.planning/codebase/INTEGRATIONS.md`, `.planning/codebase/STACK.md`, `.planning/codebase/STRUCTURE.md`, `.planning/codebase/TESTING.md`
 - Impact: Until the deletions are committed, `git status` shows 7 deleted files as unstaged changes. This creates noise and could cause confusion if someone runs `git checkout .` or `git restore .` — the old template-focused docs would reappear.
 - Fix approach: Commit the deletions alongside the new codebase analysis documents.

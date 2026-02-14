@@ -5,7 +5,7 @@
 ## Directory Layout
 
 ```
-ai-invasion/                          # Root worktree (development branch)
+LAND.E/                          # Root worktree (development branch)
 ├── .foam/                            # VS Code Foam extension templates
 │   └── templates/                    # Note templates for daily logs
 │       ├── daily-note.md             # Date-stamped daily note template

@@ -112,7 +112,7 @@ uv run jupyter notebook  # from within 02-worktrees/experiments-with-models/
 - `marimo-tests` - Marimo sandbox experiments
 
 **Git remotes:**
-- `origin` → `git@github.com-primary:progressEdd/ai-invasion.git`
+- `origin` → `git@github.com-primary:progressEdd/LAND.E.git`
 - `template` → `git@github.com-primary:progressEdd/project-template.git` (upstream template repo)
 
 ---

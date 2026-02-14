@@ -27,7 +27,7 @@ This is a **documentation-and-workflow template repository**, not a traditional 
 - Template files: descriptive lowercase (`daily-note.md`, `new-template.md`, `00-template.md`)
 
 **Python (on experiment branches):**
-- Project names in `pyproject.toml`: lowercase with hyphens (`ai-invasion`, `template-repo`)
+- Project names in `pyproject.toml`: lowercase with hyphens (`LAND.E`, `template-repo`)
 - Python version pinned in `.python-version` file: `3.13`
 - Use `snake_case` for Python function names and variables (observed in research code examples)
 - Use `PascalCase` for Python classes (standard Python convention — no custom override)

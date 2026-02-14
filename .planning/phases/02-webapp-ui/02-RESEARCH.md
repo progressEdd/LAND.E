@@ -135,7 +135,7 @@ uv add fastapi uvicorn[standard] aiosqlite openai ollama pydantic websockets
 ### Recommended Project Structure
 
 ```
-ai-invasion/                    # repo root (master branch)
+LAND.E/                    # repo root (master branch)
 ├── backend/                    # Python/FastAPI
 │   ├── app/
 │   │   ├── __init__.py
