@@ -10,17 +10,17 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 4 of 4 (Webapp UI)
-Plan: 5 of 6 in current phase
-Status: Plan 02-04 complete. REST API endpoints for story CRUD and LLM config, typed frontend API client, and settings panel.
-Last activity: 2026-02-14 — Completed 02-04-PLAN.md (REST API & Settings Panel)
+Plan: 6 of 6 in current phase
+Status: Plan 02-05 complete. WebSocket generation streaming, draft node lifecycle, token-by-token editor insertion with provenance marks.
+Last activity: 2026-02-14 — Completed 02-05-PLAN.md (WebSocket Generation Streaming)
 
-Progress: [██████░░░░] 67% (4/6 plans in Phase 4)
+Progress: [████████░░] 83% (5/6 plans in Phase 4)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 1.7 min
+- Total plans completed: 8
+- Average duration: 1.8 min
 - Total execution time: 0.2 hours
 
 **By Phase:**
@@ -30,10 +30,10 @@ Progress: [██████░░░░] 67% (4/6 plans in Phase 4)
 | 1. Template Preparation | 1/1 | 1 min | 1 min |
 | 2. Branch Creation Flow | 1/1 | 2 min | 2 min |
 | 3. Root README Index | 1/1 | 1 min | 1 min |
-| 4. Webapp UI | 4/6 | 11 min | 2.8 min |
+| 4. Webapp UI | 5/6 | 14 min | 2.8 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (1 min), 02-01-webapp (3 min), 02-02-webapp (3 min), 02-03-webapp (2 min), 02-04-webapp (3 min)
+- Last 5 plans: 02-01-webapp (3 min), 02-02-webapp (3 min), 02-03-webapp (2 min), 02-04-webapp (3 min), 02-05-webapp (3 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -60,6 +60,10 @@ Recent decisions affecting current work:
 - [02-04-webapp]: Used $effect() for initial story list load on SettingsPanel mount
 - [02-04-webapp]: Svelte 5 event handler: onclick with e.stopPropagation() instead of |stopPropagation modifier
 
+- [02-05-webapp]: run_cycle() returns full result then streams char-by-char with 10ms delay — visual streaming with structured output API
+- [02-05-webapp]: Model name sent in generate WebSocket message from frontend — avoids extra API call
+- [02-05-webapp]: User-typed text provenance via handleTextInput ProseMirror prop — intercepts and wraps with user_written mark
+
 ### Pending Todos
 
 None.
@@ -71,5 +75,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 02-04-PLAN.md (REST API endpoints, frontend API client, settings panel)
+Stopped at: Completed 02-05-PLAN.md (WebSocket generation streaming, draft flow, provenance)
 Resume file: None
