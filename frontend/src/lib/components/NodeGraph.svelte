@@ -124,6 +124,30 @@
 		const descendants = root.descendants() as LayoutNode[];
 		const links = root.links() as { source: LayoutNode; target: LayoutNode }[];
 
+		// 1b. Post-layout pass: push children down when a parent has seeds
+		// so seed nodes don't overlap the next paragraph level.
+		const SEED_EXTRA = SEED_OFFSET_Y + SEED_RADIUS + 12; // total extra space a seed row needs
+		function pushSubtreeDown(node: LayoutNode, delta: number): void {
+			node.y += delta;
+			for (const child of (node.children ?? [])) {
+				pushSubtreeDown(child, delta);
+			}
+		}
+		// Process top-down (BFS order — descendants are already in that order)
+		for (const n of descendants) {
+			const hasSeeds = (n.data.analysis?.next_paragraph_seeds?.length ?? 0) > 0;
+			if (hasSeeds && n.children) {
+				for (const child of n.children) {
+					// Only add extra if the gap between parent and child isn't already big enough
+					const gap = child.y - n.y;
+					if (gap < SEED_EXTRA + TREE_SPACING_Y * 0.5) {
+						const needed = SEED_EXTRA + TREE_SPACING_Y * 0.5 - gap;
+						pushSubtreeDown(child, needed);
+					}
+				}
+			}
+		}
+
 		// Compute tree bounds for offset
 		let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
 		for (const n of descendants) {
