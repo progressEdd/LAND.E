@@ -42,7 +42,7 @@ webapp-ui/
 
 - Python 3.13+
 - [uv](https://docs.astral.sh/uv/) (Python package manager)
-- Node.js 18+ and npm
+- Node.js 18+ and bun
 - At least one LLM backend running (see [LLM Backends](#llm-backends))
 
 ## Getting Started
@@ -60,7 +60,7 @@ This installs dependencies for the workspace root and the `backend/` member.
 
 ```bash
 cd frontend
-npm install
+bun install
 ```
 
 ### 3. Start the backend
@@ -80,7 +80,7 @@ In a separate terminal:
 
 ```bash
 cd frontend
-npm run dev
+bun run dev
 ```
 
 The app is available at `http://localhost:5173`. The Vite dev server proxies `/api` and `/ws` requests to the backend on port 8000.
