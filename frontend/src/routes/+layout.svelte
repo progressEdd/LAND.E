@@ -147,7 +147,7 @@
 	}
 
 	:global(.custom-theme .splitpanes__splitter) {
-		background-color: #374151;
+		background-color: var(--border-color, #374151);
 		width: 4px;
 		border: none;
 		margin: 0;
@@ -172,6 +172,9 @@
 		--text-faint: #9ca3af;
 		--hover-bg: #f3f4f6;
 		--panel-bg: #ffffff;
+		--seed-stroke: #b45309;
+		--seed-stroke-hover: #92400e;
+		--seed-hover-bg: rgba(180, 83, 9, 0.15);
 	}
 
 	.app-shell.dark {
@@ -183,5 +186,8 @@
 		--text-faint: #6b7280;
 		--hover-bg: #1f2937;
 		--panel-bg: #030712;
+		--seed-stroke: #fbbf24;
+		--seed-stroke-hover: #f59e0b;
+		--seed-hover-bg: rgba(251, 191, 36, 0.2);
 	}
 </style>

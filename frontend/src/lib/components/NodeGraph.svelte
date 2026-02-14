@@ -7,16 +7,16 @@
 	import type { TreeNode, CharacterSummary } from '$lib/types';
 
 	// ---- Layout constants ----
-	const P_RADIUS = 14;                // paragraph node radius
-	const CHAR_RADIUS = 18;             // character supernode radius
-	const SEED_RADIUS = 10;             // seed node radius
-	const TREE_SPACING_X = 50;          // horizontal gap between sibling branches
-	const TREE_SPACING_Y = 52;          // vertical gap between tree levels
-	const SEED_SPACING_X = 40;          // horizontal gap between seed nodes
-	const SEED_OFFSET_Y = 44;           // vertical offset of seeds below their parent
-	const CHAR_COLUMN_X_OFFSET = 60;    // character column offset from rightmost paragraph node
-	const CHAR_SPACING_Y = 48;          // vertical gap between character supernodes
-	const PADDING = 30;
+	const P_RADIUS = 20;                // paragraph node radius
+	const CHAR_RADIUS = 26;             // character supernode radius
+	const SEED_RADIUS = 14;             // seed node radius
+	const TREE_SPACING_X = 72;          // horizontal gap between sibling branches
+	const TREE_SPACING_Y = 72;          // vertical gap between tree levels
+	const SEED_SPACING_X = 56;          // horizontal gap between seed nodes
+	const SEED_OFFSET_Y = 60;           // vertical offset of seeds below their parent
+	const CHAR_COLUMN_X_OFFSET = 80;    // character column offset from rightmost paragraph node
+	const CHAR_SPACING_Y = 64;          // vertical gap between character supernodes
+	const PADDING = 40;
 
 	// ---- Character color palette (10 distinct hues) ----
 	const PALETTE = [
@@ -89,6 +89,7 @@
 		y: number;
 		parentX: number;
 		parentY: number;
+		parentId: string;
 	}
 
 	interface GraphLayout {
@@ -176,32 +177,31 @@
 			return pc;
 		});
 
-		// 5. Position seed nodes below the last active paragraph node
+		// 5. Position seed nodes below every paragraph node that has persisted analysis seeds
 		const seeds: PositionedSeed[] = [];
-		const analysisSeeds = generationState.lastAnalysis?.next_paragraph_seeds ?? [];
-		const showSeeds = analysisSeeds.length > 0 && generationState.status === 'idle';
+		const paraMap = new Map(paragraphs.map((p) => [p.id, p]));
 
-		if (showSeeds) {
-			// Find the last active paragraph node
-			const activePath = td.active_path ?? [];
-			const lastActiveId = activePath[activePath.length - 1];
-			const lastActivePara = paragraphs.find((p) => p.id === lastActiveId);
+		for (const n of descendants) {
+			const nodeSeeds = n.data.analysis?.next_paragraph_seeds ?? [];
+			if (nodeSeeds.length === 0) continue;
 
-			if (lastActivePara) {
-				const seedCount = analysisSeeds.length;
-				const totalWidth = (seedCount - 1) * SEED_SPACING_X;
-				const startX = lastActivePara.x - totalWidth / 2;
+			const para = paraMap.get(n.data.id);
+			if (!para) continue;
 
-				for (let i = 0; i < seedCount; i++) {
-					seeds.push({
-						index: i,
-						text: analysisSeeds[i],
-						x: startX + i * SEED_SPACING_X,
-						y: lastActivePara.y + SEED_OFFSET_Y,
-						parentX: lastActivePara.x,
-						parentY: lastActivePara.y,
-					});
-				}
+			const seedCount = nodeSeeds.length;
+			const totalWidth = (seedCount - 1) * SEED_SPACING_X;
+			const startX = para.x - totalWidth / 2;
+
+			for (let i = 0; i < seedCount; i++) {
+				seeds.push({
+					index: i,
+					text: nodeSeeds[i],
+					x: startX + i * SEED_SPACING_X,
+					y: para.y + SEED_OFFSET_Y,
+					parentX: para.x,
+					parentY: para.y,
+					parentId: n.data.id,
+				});
 			}
 		}
 
@@ -237,10 +237,7 @@
 	function handleSeedClick(seed: PositionedSeed): void {
 		const storyId = storyState.activeStoryId;
 		if (!storyId) return;
-		const activePath = graphState.treeData?.active_path ?? [];
-		const lastNodeId = activePath[activePath.length - 1];
-		if (!lastNodeId) return;
-		generationState.startGeneration(storyId, lastNodeId, seed.text);
+		generationState.startGeneration(storyId, seed.parentId, seed.text);
 	}
 
 	// ---- Tooltip state ----
@@ -471,35 +468,39 @@
 						</g>
 					{/each}
 
-					<!-- Seed nodes -->
-					{#each layout.seeds as s (s.index)}
-						<line
-							x1={s.parentX} y1={s.parentY}
-							x2={s.x} y2={s.y}
-							class="seed-edge"
+				<!-- Seed edges (rendered first so circles paint on top) -->
+				{#each layout.seeds as s, i (`${s.parentId}-edge-${s.index}`)}
+					<line
+						x1={s.parentX} y1={s.parentY}
+						x2={s.x} y2={s.y}
+						class="seed-edge"
+					/>
+				{/each}
+
+				<!-- Seed nodes -->
+				{#each layout.seeds as s, i (`${s.parentId}-node-${s.index}`)}
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<g
+						class="seed-group"
+						onclick={() => handleSeedClick(s)}
+						onmouseenter={(e) => showSeedTooltip(e, s)}
+						onmouseleave={hideTooltip}
+					>
+						<circle
+							cx={s.x} cy={s.y} r={SEED_RADIUS}
+							class="seed-circle"
 						/>
-						<!-- svelte-ignore a11y_click_events_have_key_events -->
-						<!-- svelte-ignore a11y_no_static_element_interactions -->
-						<g
-							class="seed-group"
-							onclick={() => handleSeedClick(s)}
-							onmouseenter={(e) => showSeedTooltip(e, s)}
-							onmouseleave={hideTooltip}
+						<text
+							x={s.x} y={s.y + 1}
+							class="seed-label"
+							text-anchor="middle"
+							dominant-baseline="middle"
 						>
-							<circle
-								cx={s.x} cy={s.y} r={SEED_RADIUS}
-								class="seed-circle"
-							/>
-							<text
-								x={s.x} y={s.y + 1}
-								class="seed-label"
-								text-anchor="middle"
-								dominant-baseline="middle"
-							>
-								{s.index + 1}
-							</text>
-						</g>
-					{/each}
+							{s.index + 1}
+						</text>
+					</g>
+				{/each}
 				</g>
 			</svg>
 
@@ -639,7 +640,7 @@
 
 	.para-label {
 		fill: var(--text-muted, #9ca3af);
-		font-size: 10px;
+		font-size: 13px;
 		font-weight: 600;
 		font-family: monospace;
 		pointer-events: none;
@@ -667,7 +668,7 @@
 
 	.char-label {
 		fill: #ffffff;
-		font-size: 8px;
+		font-size: 12px;
 		font-weight: 700;
 		font-family: monospace;
 		pointer-events: none;
@@ -680,23 +681,23 @@
 
 	/* ---- Seed nodes ---- */
 	.seed-edge {
-		stroke: #fbbf24;
+		stroke: var(--seed-stroke, #fbbf24);
 		stroke-width: 1;
 		stroke-dasharray: 3 3;
-		opacity: 0.5;
+		opacity: 0.7;
 	}
 
 	.seed-circle {
 		fill: var(--hover-bg, #1f2937);
-		stroke: #fbbf24;
+		stroke: var(--seed-stroke, #fbbf24);
 		stroke-width: 1.5;
 		stroke-dasharray: 3 2;
 		transition: fill 150ms ease, stroke 150ms ease;
 	}
 
 	.seed-label {
-		fill: #fbbf24;
-		font-size: 8px;
+		fill: var(--seed-stroke, #fbbf24);
+		font-size: 11px;
 		font-weight: 700;
 		font-family: monospace;
 		pointer-events: none;
@@ -707,8 +708,8 @@
 	}
 
 	.seed-group:hover .seed-circle {
-		fill: rgba(251, 191, 36, 0.2);
-		stroke: #f59e0b;
+		fill: var(--seed-hover-bg, rgba(251, 191, 36, 0.2));
+		stroke: var(--seed-stroke-hover, #f59e0b);
 	}
 
 	/* ---- Custom tooltip ---- */
