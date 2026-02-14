@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Every experiment/feature branch is self-documenting from creation — branching, worktree setup, README population, and project naming happen automatically so you can start building immediately.
-**Current focus:** Phase 4 (Webapp UI) — COMPLETE. All 6 plans executed.
+**Current focus:** Phase 4 (Webapp UI) — Plan 02-09 COMPLETE (Node Graph Backend). Ready for 02-10 (Frontend Graph Visualizer).
 
 ## Current Position
 
-Phase: 4 of 4 (Webapp UI) — COMPLETE
-Plan: 6 of 6 in current phase — COMPLETE
-Status: All plans complete. Full webapp delivered: create stories, generate AI continuations, view analysis, export markdown, switch stories with provenance restoration.
-Last activity: 2026-02-14 — Completed 02-06-PLAN.md (Analysis Panel, Export & Story Loading)
+Phase: 4 of 4 (Webapp UI) — Plan 02-09 COMPLETE
+Plan: 9 in current phase — COMPLETE
+Status: Backend data model and API for graph visualizer complete. character_mentions table, analysis persistence, tree API, and branch switching endpoint all implemented.
+Last activity: 2026-02-14 — Completed 02-09-PLAN.md (Node Graph Backend)
 
-Progress: [██████████] 100% (6/6 plans in Phase 4)
+Progress: [██████████] 100% (9/9 plans in Phase 4)
 
 ## Performance Metrics
 
@@ -30,7 +30,7 @@ Progress: [██████████] 100% (6/6 plans in Phase 4)
 | 1. Template Preparation | 1/1 | 1 min | 1 min |
 | 2. Branch Creation Flow | 1/1 | 2 min | 2 min |
 | 3. Root README Index | 1/1 | 1 min | 1 min |
-| 4. Webapp UI | 6/6 | 18 min | 3.0 min |
+| 4. Webapp UI | 8/9 | 18 min | 2.3 min |
 
 **Recent Trend:**
 - Last 5 plans: 02-02-webapp (3 min), 02-03-webapp (2 min), 02-04-webapp (3 min), 02-05-webapp (3 min), 02-06-webapp (4 min)
@@ -79,5 +79,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 02-06-PLAN.md (Analysis panel, markdown export, story loading flow). Phase 02 complete.
-Resume file: None
+Stopped at: Completed 02-09-PLAN.md (Node Graph Backend). Ready for 02-10 (Frontend Graph Visualizer).
+Resume file: None — next plan to draft is 02-10-PLAN.md

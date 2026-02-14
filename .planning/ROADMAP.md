@@ -77,7 +77,7 @@ Plans:
   8. Stories persist in SQLite and restore with provenance on page refresh
   9. Markdown export produces a downloadable .md file of the active story path
   10. 4 LLM backends supported: lmstudio, ollama, openai, llamacpp
-**Plans:** 8 plans
+**Plans:** 9 plans (8 complete, 1 in progress)
 
 Plans:
 - [x] 02-01-PLAN.md — Backend scaffold: FastAPI, SQLite schema, LLM service, story pipeline
@@ -88,6 +88,7 @@ Plans:
 - [x] 02-06-PLAN.md — Analysis panel, markdown export, story loading, app polish
 - [x] 02-07-PLAN.md — "I'm Feeling Lucky" random premise generator
 - [x] 02-08-PLAN.md — Bug fixes: accept truncation, missing space, generating animation, title population, delete button
+- [x] 02-09-PLAN.md — Node graph backend: character_mentions table, analysis persistence, tree API, branch switching endpoint
 
 ## Progress
 
@@ -99,4 +100,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Template Preparation | 1/1 | Complete | 2026-02-13 |
 | 2. Branch Creation Flow | 1/1 | Complete | 2026-02-13 |
 | 3. Root README Index | 1/1 | Complete | 2026-02-13 |
-| 4. Webapp UI | 8/8 | Complete | 2026-02-14 |
+| 4. Webapp UI | 9/9 | Complete | 2026-02-14 |
