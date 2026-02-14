@@ -4,6 +4,14 @@
 
 Simplified the node graph by using proper initials for character labels and removing the paragraph-to-character cross-edges that cluttered the visualization.
 
+### Before (issues addressed)
+
+![Graph before changes — truncated 3-char labels and cross-edges](../../../00-supporting-files/images/02-CONTEXT/20260214014311.png)
+
+![Paragraph tooltip showing character associations](../../../00-supporting-files/images/02-CONTEXT/20260214014400.png)
+
+![Character labels overflowing with concatenated names](../../../00-supporting-files/images/02-CONTEXT/20260214015225.png)
+
 ### Changes
 
 **NodeGraph.svelte — Character initials:**
