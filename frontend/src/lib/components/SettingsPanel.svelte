@@ -304,7 +304,7 @@
 					onclick={(e) => { e.stopPropagation(); storyState.deleteStory(story.id); }}
 					title="Delete story"
 				>
-					\u2715
+					{'\u2715'}
 				</button>
 			</div>
 		{/each}
@@ -459,6 +459,7 @@
 		border-radius: 4px;
 		cursor: pointer;
 		transition: background-color 150ms ease;
+		gap: 8px;
 	}
 
 	.story-item:hover {
@@ -476,6 +477,7 @@
 		gap: 2px;
 		min-width: 0;
 		flex: 1;
+		overflow: hidden;
 	}
 
 	.story-title {
