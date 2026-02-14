@@ -63,7 +63,6 @@
 		isActive: boolean;
 		isDraft: boolean;
 		isGenerating: boolean;
-		characterNames: string[];
 	}
 
 	interface PositionedCharacter {
@@ -80,17 +79,10 @@
 		isActive: boolean;
 	}
 
-	interface CharEdge {
-		px: number; py: number; // paragraph position
-		cx: number; cy: number; // character position
-		color: string;
-	}
-
 	interface GraphLayout {
 		paragraphs: PositionedParagraph[];
 		characters: PositionedCharacter[];
 		treeEdges: TreeEdge[];
-		charEdges: CharEdge[];
 		width: number;
 		height: number;
 	}
@@ -140,7 +132,6 @@
 			isActive: activePathSet.has(n.data.id),
 			isDraft: n.data.is_draft,
 			isGenerating: n.data.is_draft && generationState.isGenerating,
-			characterNames: (n.data.character_mentions ?? []).map((m) => m.character_name),
 		}));
 
 		// 3. Build tree edges
@@ -172,31 +163,27 @@
 			return pc;
 		});
 
-		// 5. Build cross-edges from paragraphs to their characters
-		const charEdges: CharEdge[] = [];
-		for (const p of paragraphs) {
-			for (const cname of p.characterNames) {
-				const c = charMap.get(cname);
-				if (c) {
-					charEdges.push({ px: p.x, py: p.y, cx: c.x, cy: c.y, color: c.color });
-				}
-			}
-		}
-
-		// 6. Compute total SVG dimensions
+		// 5. Compute total SVG dimensions
 		const rightmost = characters.length > 0 ? charX + CHAR_RADIUS + PADDING : treeRight + PADDING;
 		const bottomPara = Math.max(...paragraphs.map((p) => p.y)) + P_RADIUS + PADDING;
 		const bottomChar = characters.length > 0 ? Math.max(...characters.map((c) => c.y)) + CHAR_RADIUS + PADDING : 0;
 		const w = rightmost;
 		const h = Math.max(bottomPara, bottomChar, 100);
 
-		return { paragraphs, characters, treeEdges, charEdges, width: w, height: h };
+		return { paragraphs, characters, treeEdges, width: w, height: h };
 	});
 
 	// ---- Helpers ----
 	function truncate(text: string, max: number): string {
 		if (text.length <= max) return text;
 		return text.slice(0, max - 1) + '\u2026';
+	}
+
+	/** Derive initials from a character name: "John Doe" → "JD", "Gandalf" → "G" */
+	function initials(name: string): string {
+		const parts = name.trim().split(/\s+/);
+		if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+		return parts.map((p) => p.charAt(0).toUpperCase()).join('');
 	}
 
 	function handleNodeClick(nodeId: string): void {
@@ -221,12 +208,11 @@
 	function showParaTooltip(e: MouseEvent, p: PositionedParagraph): void {
 		const rect = graphScrollEl?.getBoundingClientRect();
 		if (!rect) return;
-		const chars = p.characterNames.length > 0 ? `Characters: ${p.characterNames.join(', ')}` : 'No characters';
 		tooltip = {
 			x: e.clientX - rect.left + graphScrollEl!.scrollLeft,
 			y: e.clientY - rect.top + graphScrollEl!.scrollTop,
 			title: `Paragraph ${p.position + 1}`,
-			body: `${truncate(p.content, 200)}\n\n${chars}`,
+			body: truncate(p.content, 200),
 		};
 	}
 
@@ -358,16 +344,6 @@
 				height="100%"
 			>
 				<g transform="translate({panX}, {panY}) scale({scale})">
-					<!-- Character cross-edges (draw first, behind everything) -->
-					{#each layout.charEdges as ce, i (i)}
-						<line
-							x1={ce.px} y1={ce.py}
-							x2={ce.cx} y2={ce.cy}
-							class="char-edge"
-							stroke={ce.color}
-						/>
-					{/each}
-
 					<!-- Tree edges (paragraph flow) -->
 					{#each layout.treeEdges as te, i (i)}
 						<line
@@ -428,7 +404,7 @@
 								text-anchor="middle"
 								dominant-baseline="middle"
 							>
-								{truncate(c.name, 3).toUpperCase()}
+								{initials(c.name)}
 							</text>
 
 						</g>
@@ -536,12 +512,6 @@
 		stroke: #6366f1;
 		stroke-width: 2;
 		opacity: 1;
-	}
-
-	/* ---- Character cross-edges (paragraph->character) ---- */
-	.char-edge {
-		stroke-width: 1;
-		opacity: 0.38;
 	}
 
 	/* ---- Paragraph nodes ---- */
