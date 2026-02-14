@@ -426,73 +426,17 @@
 				height="100%"
 			>
 				<g transform="translate({panX}, {panY}) scale({scale})">
-					<!-- Tree edges (paragraph flow) -->
-					{#each layout.treeEdges as te, i (i)}
-						<line
-							x1={te.x1} y1={te.y1}
-							x2={te.x2} y2={te.y2}
-							class="tree-edge"
-							class:tree-edge-active={te.isActive}
-						/>
-					{/each}
+				<!-- Layer 1: Tree edges (paragraph flow) -->
+				{#each layout.treeEdges as te, i (i)}
+					<line
+						x1={te.x1} y1={te.y1}
+						x2={te.x2} y2={te.y2}
+						class="tree-edge"
+						class:tree-edge-active={te.isActive}
+					/>
+				{/each}
 
-					<!-- Paragraph nodes -->
-					{#each layout.paragraphs as p (p.id)}
-						<!-- svelte-ignore a11y_click_events_have_key_events -->
-						<!-- svelte-ignore a11y_no_static_element_interactions -->
-						<g
-							class="para-group"
-							class:para-clickable={!p.isActive}
-							onclick={() => handleNodeClick(p.id)}
-							onmouseenter={(e) => showParaTooltip(e, p)}
-							onmouseleave={hideTooltip}
-						>
-							<circle
-								cx={p.x} cy={p.y} r={P_RADIUS}
-								class="para-circle"
-								class:para-active={p.isActive}
-								class:para-branch={!p.isActive && !p.isDraft}
-								class:para-draft={p.isDraft}
-								class:para-generating={p.isGenerating}
-							/>
-							<text
-								x={p.x} y={p.y + 1}
-								class="para-label"
-								class:para-label-active={p.isActive}
-								text-anchor="middle"
-								dominant-baseline="middle"
-							>
-								{p.position + 1}
-							</text>
-						</g>
-					{/each}
-
-					<!-- Character supernodes -->
-					{#each layout.characters as c (c.name)}
-						<!-- svelte-ignore a11y_no_static_element_interactions -->
-						<g
-							class="char-group"
-							onmouseenter={(e) => showCharTooltip(e, c)}
-							onmouseleave={hideTooltip}
-						>
-							<circle
-								cx={c.x} cy={c.y} r={CHAR_RADIUS}
-								fill={c.color}
-								class="char-circle"
-							/>
-							<text
-								x={c.x} y={c.y + 1}
-								class="char-label"
-								text-anchor="middle"
-								dominant-baseline="middle"
-							>
-								{initial(c.name)}
-							</text>
-
-						</g>
-					{/each}
-
-				<!-- Seed edges (rendered first so circles paint on top) -->
+				<!-- Layer 2: Seed edges (behind all nodes) -->
 				{#each layout.seeds as s, i (`${s.parentId}-edge-${s.index}`)}
 					<line
 						x1={s.parentX} y1={s.parentY}
@@ -501,7 +445,63 @@
 					/>
 				{/each}
 
-				<!-- Seed nodes -->
+				<!-- Layer 3: Paragraph nodes -->
+				{#each layout.paragraphs as p (p.id)}
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<g
+						class="para-group"
+						class:para-clickable={!p.isActive}
+						onclick={() => handleNodeClick(p.id)}
+						onmouseenter={(e) => showParaTooltip(e, p)}
+						onmouseleave={hideTooltip}
+					>
+						<circle
+							cx={p.x} cy={p.y} r={P_RADIUS}
+							class="para-circle"
+							class:para-active={p.isActive}
+							class:para-branch={!p.isActive && !p.isDraft}
+							class:para-draft={p.isDraft}
+							class:para-generating={p.isGenerating}
+						/>
+						<text
+							x={p.x} y={p.y + 1}
+							class="para-label"
+							class:para-label-active={p.isActive}
+							text-anchor="middle"
+							dominant-baseline="middle"
+						>
+							{p.position + 1}
+						</text>
+					</g>
+				{/each}
+
+				<!-- Layer 4: Character supernodes -->
+				{#each layout.characters as c (c.name)}
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<g
+						class="char-group"
+						onmouseenter={(e) => showCharTooltip(e, c)}
+						onmouseleave={hideTooltip}
+					>
+						<circle
+							cx={c.x} cy={c.y} r={CHAR_RADIUS}
+							fill={c.color}
+							class="char-circle"
+						/>
+						<text
+							x={c.x} y={c.y + 1}
+							class="char-label"
+							text-anchor="middle"
+							dominant-baseline="middle"
+						>
+							{initial(c.name)}
+						</text>
+
+					</g>
+				{/each}
+
+				<!-- Layer 5: Seed nodes (on top of everything) -->
 				{#each layout.seeds as s, i (`${s.parentId}-node-${s.index}`)}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -741,11 +741,11 @@
 		position: absolute;
 		pointer-events: none;
 		z-index: 10;
-		max-width: 280px;
+		max-width: 420px;
 		background: var(--sidebar-bg, #111827);
 		border: 1px solid var(--border-color, #374151);
-		border-radius: 6px;
-		padding: 8px 10px;
+		border-radius: 8px;
+		padding: 12px 16px;
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 	}
 
@@ -753,23 +753,23 @@
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		font-size: 11px;
+		font-size: 15px;
 		font-weight: 600;
 		color: var(--text-primary, #e5e7eb);
-		margin-bottom: 4px;
+		margin-bottom: 6px;
 	}
 
 	.tooltip-dot {
-		width: 8px;
-		height: 8px;
+		width: 10px;
+		height: 10px;
 		border-radius: 50%;
 		flex-shrink: 0;
 	}
 
 	.tooltip-body {
-		font-size: 10px;
+		font-size: 14px;
 		color: var(--text-muted, #9ca3af);
-		line-height: 1.4;
+		line-height: 1.5;
 		white-space: pre-wrap;
 		word-break: break-word;
 	}
