@@ -168,9 +168,12 @@ Examples:
 - Foam VS Code extension templates in `.foam/templates/` for note creation
 
 **Image Assets:**
-- Screenshots organized by date: `00-supporting-files/images/YYYY-MM-DD/`
+- Screenshots organized by context: `00-supporting-files/images/02-CONTEXT/` for phase 4 (webapp UI) screenshots
+- Legacy screenshots organized by date: `00-supporting-files/images/YYYY-MM-DD/`
 - README images in `00-supporting-files/images/README/`
 - Timestamp-based filenames: `YYYYMMDDHHmmss.png`
+- **Screenshots provided as feedback during plan execution (pasted, drag-and-dropped, or referenced by filename) must be saved to the appropriate images directory and embedded in the plan's SUMMARY.md as markdown image references**
+- Screenshots showing "before" state go under `### Before` in the summary; screenshots showing "after" state go under `### After`
 
 ## Dependency Management
 
