@@ -3,6 +3,7 @@
 	import { Splitpanes, Pane } from 'svelte-splitpanes';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import GraphPlaceholder from '$lib/components/GraphPlaceholder.svelte';
+	import SettingsPanel from '$lib/components/SettingsPanel.svelte';
 	import { themeState } from '$lib/stores/theme.svelte';
 
 	let { children } = $props();
@@ -14,7 +15,7 @@
 <div class="app-shell" class:dark={themeState.isDark}>
 	<!-- Left Sidebar: Settings -->
 	<Sidebar side="left" title="Settings" bind:collapsed={leftCollapsed}>
-		<p class="placeholder-text">Settings panel &mdash; coming in Plan 04</p>
+		<SettingsPanel />
 	</Sidebar>
 
 	<!-- Main Content: Split Pane (Editor + Graph) -->
