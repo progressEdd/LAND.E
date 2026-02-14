@@ -50,6 +50,8 @@ Enlarged all graph nodes for readability, made seed colors theme-aware, persiste
 
 ![Seed nodes properly spaced below parent paragraph nodes, no overlap](../../../00-supporting-files/images/02-CONTEXT/20260214022435.png)
 
+![Seed edges render behind paragraph nodes, larger tooltips](../../../00-supporting-files/images/02-CONTEXT/20260214022914.png)
+
 ### Commits
 
 - **webapp-ui branch:** `9bb37be` — feat: enlarge graph nodes, persist seeds per-node, theme-aware seed colors, fix SVG layering
