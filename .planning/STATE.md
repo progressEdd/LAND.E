@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-13)
 
 **Core value:** Every experiment/feature branch is self-documenting from creation — branching, worktree setup, README population, and project naming happen automatically so you can start building immediately.
-**Current focus:** Phase 4 (Webapp UI) — Plan 02-11 COMPLETE (Bug Fixes: provenance visibility, graph rework, node labels). All plans complete.
+**Current focus:** Phase 4 (Webapp UI) — Plan 02-12 COMPLETE (Graph Hover Tooltips and Zoom/Pan). All plans complete.
 
 ## Current Position
 
-Phase: 4 of 4 (Webapp UI) — Plan 02-11 COMPLETE
-Plan: 11 in current phase — COMPLETE
-Status: Bug fixes applied — provenance marks use background tints for theme compatibility, graph reworked to bipartite circle design, node labels fixed to show tree depth.
-Last activity: 2026-02-14 — Completed 02-11-PLAN.md (Bug Fixes)
+Phase: 4 of 4 (Webapp UI) — Plan 02-12 COMPLETE
+Plan: 12 in current phase — COMPLETE
+Status: Graph enhanced with custom hover tooltips for paragraph and character nodes, mouse wheel zoom with cursor anchoring, drag-to-pan, and zoom controls.
+Last activity: 2026-02-14 — Completed 02-12-PLAN.md (Graph Hover Tooltips and Zoom/Pan)
 
-Progress: [██████████] 100% (11/11 plans in Phase 4)
+Progress: [██████████] 100% (12/12 plans in Phase 4)
 
 ## Performance Metrics
 
@@ -79,5 +79,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 02-11-PLAN.md (Bug Fixes: provenance visibility, graph rework, node labels). All Phase 4 plans complete.
+Stopped at: Completed 02-12-PLAN.md (Graph Hover Tooltips and Zoom/Pan). All Phase 4 plans complete.
 Resume file: None — all planned work complete
