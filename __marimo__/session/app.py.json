@@ -1,0 +1,281 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.18.4"
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "f3dc5def99a04e294ff51ead5464f22d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='Hbol-0' random-id='00e99ba6-d62f-f541-aa42-8653d992ad3b'><marimo-radio data-initial-value='&quot;lmstudio&quot;' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;LLM backend&lt;/span&gt;&lt;/span&gt;&quot;' data-options='[&quot;llamacpp&quot;,&quot;lmstudio&quot;,&quot;ollama&quot;,&quot;openai&quot;,&quot;azure&quot;]' data-inline='false' data-disabled='false'></marimo-radio></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "b728223d9b332a610358b4a22d0b6ed8",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "089671181f09d8572370f4709d4d5f55",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Backend:</strong> <code>lmstudio</code></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Discovered models:</strong> 1</span></span><span class=\"markdown prose dark:prose-invert contents\"></span></div>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "ab73800f939834571edc29b17c466f88",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "23e4343b6c59c0fb55f5deae1a0ae848",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><marimo-ui-element object-id='lEQa-0' random-id='940c4b50-ad6b-faf5-9e41-d1ecb424bfa6'><marimo-dropdown data-initial-value='[&quot;\u2014 Select a model \u2014&quot;]' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;Model&lt;/span&gt;&lt;/span&gt;&quot;' data-options='[&quot;\u2014 Select a model \u2014&quot;,&quot;unsloth/gemma-3-12b-it&quot;]' data-allow-select-none='false' data-searchable='true' data-full-width='false'></marimo-dropdown></marimo-ui-element></div>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "53dca868cf67738f0b4072bbc40dc7d4",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre class='text-xs'>&#x27;unsloth/gemma-3-12b-it&#x27;</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "c4074d9685f3e5f3eb5600eb756d2d34",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Warmup (lmstudio / unsloth/gemma-3-12b-it):</strong> \u2705 1.10s (total: 1.10s)</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "74c921393d593c3829b26e0dd9497898",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "243780c52a35a17fc46be2e4008904e8",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "6d04cea7580910f9c00190e180c9ad0b",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "74ba885ccdd310ffb50ae2bc6aa4053e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 1.5rem'><marimo-ui-element object-id='Kclp-0' random-id='c969adbd-d9d4-4e20-6fa3-c0673b927656'><marimo-text-area data-initial-value='&quot;I&#x27;m feeling lucky \u2014 suggest me a premise&quot;' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;Starting premise&lt;/span&gt;&lt;/span&gt;&quot;' data-placeholder='&quot;Enter an idea for a story\u2026&quot;' data-disabled='false' data-debounce='true' data-full-width='true' data-rows='4'></marimo-text-area></marimo-ui-element><div style='width:100%;alignItems:center'><div style='display: flex;flex: 1;flex-direction: row;justify-content: space-between;align-items: normal;flex-wrap: nowrap;gap: 12rem'><marimo-ui-element object-id='Kclp-1' random-id='fc459a89-f46a-6395-3de2-eef44e440acf'><marimo-button data-initial-value='0' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;I&#x27;m feeling lucky&lt;/span&gt;&lt;/span&gt;&quot;' data-kind='&quot;neutral&quot;' data-disabled='false' data-full-width='false'></marimo-button></marimo-ui-element><div style='marginLeft:auto'><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><marimo-ui-element object-id='Kclp-2' random-id='9a14b7aa-1813-3e1f-de72-abd4ae760669'><marimo-button data-initial-value='0' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;Start&lt;/span&gt;&lt;/span&gt;&quot;' data-kind='&quot;neutral&quot;' data-disabled='false' data-full-width='false'></marimo-button></marimo-ui-element></div></div></div></div></div>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "3b139ca64aaf538bc7d338317dfd3689",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "3fe5c92590d0fe9fcff86076c0ea1a04",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Generated start, prompt sent to model: </span>\n<span class=\"paragraph\">This is the premise given by the user: I'm feeling lucky \u2014 suggest me a premise</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "33bb761943add11c9dbc2f53491fefd2",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre class='text-xs'>&quot;This is the premise given by the user: I&#x27;m feeling lucky \u2014 suggest me a premise&quot;</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "241557d2edbad294ba807037458923a1",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "7bf5c62a409d3eaba712333adda63bed",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='width:100%;height:100vh;display:flex;flexDirection:column;margin:0;padding:0;minHeight:0'><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0rem'><div style='width:100%;margin:0;padding:0'><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 1rem'><div style='margin:0;padding:0;lineHeight:0'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Premise:</strong> You wake up one morning to discover you can understand and speak with animals, but only when wearing a specific, ridiculously patterned sock.</span></span></div><div style='width:100%;flexWrap:wrap;justifyContent:flex-start;alignItems:center;margin:0;padding:0;marginTop:-8px'><div style='display: flex;flex: 1;flex-direction: row;justify-content: space-between;align-items: normal;flex-wrap: nowrap;gap: 10rem'><marimo-ui-element object-id='iLit-0' random-id='cfd97a49-d8bc-3ece-028a-806fe95aac39'><marimo-button data-initial-value='0' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;Generate next paragraph&lt;/span&gt;&lt;/span&gt;&quot;' data-kind='&quot;neutral&quot;' data-disabled='false' data-full-width='false'></marimo-button></marimo-ui-element><marimo-ui-element object-id='iLit-1' random-id='9bde8ecc-a1b5-e541-c1b3-fad545a97e21'><marimo-button data-initial-value='0' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;Append to story&lt;/span&gt;&lt;/span&gt;&quot;' data-kind='&quot;neutral&quot;' data-disabled='false' data-full-width='false'></marimo-button></marimo-ui-element><marimo-ui-element object-id='iLit-2' random-id='19c65a4f-c7a1-03a5-8bb5-11c232104974'><marimo-button data-initial-value='0' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;Discard draft&lt;/span&gt;&lt;/span&gt;&quot;' data-kind='&quot;neutral&quot;' data-disabled='false' data-full-width='false'></marimo-button></marimo-ui-element></div></div></div></div><div style='margin:0;padding:1;flex:1 1 auto;minHeight:25'><marimo-ui-element object-id='ZHCJ-0' random-id='66d1c92e-fc6b-00eb-04cf-512af181d641'><marimo-text-area data-initial-value='&quot;The alarm blared its usual unwelcome greeting at 6:00 AM. You slapped it silent, groaning as you wrestled yourself out of bed. As you reached for your socks, something felt... different. Today, you chose the socks - a kaleidoscope of neon flamingos on a Hawaiian beach - purely by accident. Stepping into them was like stepping into a new reality, because the moment your toes were encased in that garish fabric, your cat, Mr. Snuggles, started complaining about the quality of his tuna.&quot;' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;Story&lt;/span&gt;&lt;/span&gt;&quot;' data-placeholder='&quot;&quot;' data-disabled='false' data-debounce='true' data-full-width='true' data-rows='25'></marimo-text-area></marimo-ui-element></div><div style='margin:0;padding:0;width:100%'><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0rem'><span class=\"markdown prose dark:prose-invert contents\"></span><span class=\"markdown prose dark:prose-invert contents\"></span></div></div></div></div>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "f53670f88fa21affac0d2894fa26a747",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "7c4e1da17e6ef698ebe904e0ff543bd5",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "73a161d572c9114aa04c2c160541493c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre class='text-xs'>&#x27;The alarm blared its usual unwelcome greeting at 6:00 AM. You slapped it silent, groaning as you wrestled yourself out of bed. As you reached for your socks, something felt... different. Today, you chose the socks - a kaleidoscope of neon flamingos on a Hawaiian beach - purely by accident. Stepping into them was like stepping into a new reality, because the moment your toes were encased in that garish fabric, your cat, Mr. Snuggles, started complaining about the quality of his tuna.&#x27;</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "856c817d6947847228e7dae7f34eeee2",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "DnEU",
+      "code_hash": null,
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}
