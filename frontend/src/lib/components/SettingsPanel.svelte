@@ -110,7 +110,17 @@
 	async function feelingLucky() {
 		isLoadingPremise = true;
 		try {
-			newStoryPremise = await api.randomPremise();
+			const premise = await api.randomPremise();
+			newStoryPremise = premise;
+			// Auto-generate a title from the premise: use text before the em dash,
+			// or the first 6 words, truncated to a clean title
+			const dashIdx = premise.indexOf(' — ');
+			if (dashIdx > 0 && dashIdx <= 80) {
+				newStoryTitle = premise.slice(0, dashIdx);
+			} else {
+				const words = premise.split(/\s+/).slice(0, 6);
+				newStoryTitle = words.join(' ').replace(/[.,;:!?]+$/, '') + '...';
+			}
 		} catch {
 			// Silently fail — user can still type manually
 		} finally {

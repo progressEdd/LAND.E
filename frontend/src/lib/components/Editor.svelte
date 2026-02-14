@@ -183,7 +183,20 @@
 
 		if (status === 'generating' && content.length > lastDraftContentLength) {
 			// New tokens arrived — append them with ai_generated provenance
-			const newText = content.slice(lastDraftContentLength);
+			let newText = content.slice(lastDraftContentLength);
+
+			// On the very first token, ensure there's a space separator from existing text
+			if (lastDraftContentLength === 0) {
+				const docSize = editor.state.doc.content.size;
+				if (docSize > 2) {
+					// Get the last character of existing text (docSize - 1 is the end-of-doc boundary)
+					const lastChar = editor.state.doc.textBetween(docSize - 2, docSize - 1);
+					if (lastChar && !/\s/.test(lastChar)) {
+						newText = ' ' + newText;
+					}
+				}
+			}
+
 			lastDraftContentLength = content.length;
 			insertedDraftLength += newText.length;
 
@@ -202,10 +215,10 @@
 	// Watch for draft completion (accept/reject)
 	$effect(() => {
 		const status = generationState.status;
+		const lastAction = generationState.lastAction;
 
 		if (status === 'idle' && insertedDraftLength > 0 && lastDraftContentLength > 0) {
-			// Check if it was a reject — if draftContent is empty, remove
-			if (generationState.draftContent === '') {
+			if (lastAction === 'rejected') {
 				// Reject: remove the draft text from editor
 				removeDraftText(insertedDraftLength);
 			}

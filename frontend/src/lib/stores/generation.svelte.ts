@@ -5,11 +5,13 @@ import { settingsState } from '$lib/stores/settings.svelte';
 import type { ConnectionState } from '$lib/api/ws';
 
 export type GenerationStatus = 'idle' | 'generating' | 'draft_ready' | 'accepting' | 'rejecting';
+export type DraftAction = 'accepted' | 'rejected' | null;
 
 class GenerationState {
 	status = $state<GenerationStatus>('idle');
 	draftNodeId = $state<string | null>(null);
 	draftContent = $state('');
+	lastAction = $state<DraftAction>(null);
 	lastAnalysis = $state<StoryAnalysis | null>(null);
 	error = $state<string | null>(null);
 	connectionState = $state<ConnectionState>('disconnected');
@@ -43,6 +45,7 @@ class GenerationState {
 		this.status = 'generating';
 		this.draftContent = '';
 		this.draftNodeId = null;
+		this.lastAction = null;
 		this.lastAnalysis = null;
 		this.error = null;
 
@@ -102,6 +105,7 @@ class GenerationState {
 				break;
 
 			case 'accepted':
+				this.lastAction = 'accepted';
 				this.status = 'idle';
 				this.draftNodeId = null;
 				this.draftContent = '';
@@ -110,6 +114,7 @@ class GenerationState {
 				break;
 
 			case 'rejected':
+				this.lastAction = 'rejected';
 				this.status = 'idle';
 				this.draftNodeId = null;
 				this.draftContent = '';

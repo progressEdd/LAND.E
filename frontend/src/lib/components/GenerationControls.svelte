@@ -62,7 +62,12 @@
 		</div>
 
 		<!-- Status text -->
-		{#if statusMessages[generationState.status]}
+		{#if generationState.status === 'generating'}
+			<span class="status-text generating">
+				<span class="generating-dot"></span>
+				Generating...
+			</span>
+		{:else if statusMessages[generationState.status]}
 			<span class="status-text">{statusMessages[generationState.status]}</span>
 		{/if}
 
@@ -160,6 +165,22 @@
 	.status-text {
 		font-size: 12px;
 		color: var(--text-secondary, #d1d5db);
+	}
+
+	.status-text.generating {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		color: #a5b4fc;
+	}
+
+	.generating-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background-color: #6366f1;
+		animation: pulse 1s infinite;
+		flex-shrink: 0;
 	}
 
 	.error-text {
