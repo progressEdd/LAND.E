@@ -63,7 +63,7 @@ completed: 2026-02-14
 - Delete button on story items now renders the cross icon correctly instead of literal `\u2715` text, and no longer overlaps the truncated story title
 
 ### Delete button bug
-![Delete button rendering \u2715 as literal text and overlapping the title](../../../00-supporting-files/images/2026-02-14/delete-button-bug.png)
+![Delete button rendering \u2715 as literal text and overlapping the title](../../../00-supporting-files/images/02-CONTEXT/20260214010420.png)
 
 ## Task Commits
 
