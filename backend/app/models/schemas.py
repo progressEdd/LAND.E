@@ -141,6 +141,8 @@ class NodeResponse(BaseModel):
     is_draft: bool
     created_at: str
     provenance_spans: list[ProvenanceSpanResponse] = Field(default_factory=list)
+    character_mentions: list["CharacterMentionResponse"] = Field(default_factory=list)
+    analysis: Optional[StoryAnalysis] = None
 
 
 class StoryResponse(BaseModel):
@@ -153,3 +155,55 @@ class StoryResponse(BaseModel):
     updated_at: str
     active_path: Optional[list[str]] = None
     nodes: list[NodeResponse] = Field(default_factory=list)
+
+
+# ---------- Graph support models ----------
+
+
+class CharacterMentionResponse(BaseModel):
+    """Response model for a character mention linked to a node."""
+
+    character_name: str
+    role: Optional[str] = None
+
+
+class CharacterSummary(BaseModel):
+    """Aggregated character data for supernode rendering in the graph."""
+
+    name: str
+    node_ids: list[str] = Field(default_factory=list)
+
+
+class TreeNodeResponse(BaseModel):
+    """A node in the tree structure with recursive children."""
+
+    id: str
+    story_id: str
+    parent_id: Optional[str] = None
+    position: int
+    content: str
+    node_type: str
+    source: str
+    is_draft: bool
+    created_at: str
+    provenance_spans: list[ProvenanceSpanResponse] = Field(default_factory=list)
+    character_mentions: list[CharacterMentionResponse] = Field(default_factory=list)
+    analysis: Optional[StoryAnalysis] = None
+    children: list["TreeNodeResponse"] = Field(default_factory=list)
+
+
+class TreeResponse(BaseModel):
+    """Full tree structure for the graph visualizer."""
+
+    story_id: str
+    title: str
+    premise: str
+    active_path: list[str] = Field(default_factory=list)
+    root: Optional[TreeNodeResponse] = None
+    characters: list[CharacterSummary] = Field(default_factory=list)
+
+
+class SwitchPathRequest(BaseModel):
+    """Request body for switching the active path to a different branch."""
+
+    target_node_id: str

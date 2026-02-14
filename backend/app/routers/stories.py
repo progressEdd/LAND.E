@@ -10,7 +10,17 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from app.models.database import get_db
-from app.models.schemas import NodeResponse, StoryCreateRequest, StoryResponse
+from app.models.schemas import (
+    CharacterMentionResponse,
+    CharacterSummary,
+    NodeResponse,
+    StoryAnalysis,
+    StoryCreateRequest,
+    StoryResponse,
+    SwitchPathRequest,
+    TreeNodeResponse,
+    TreeResponse,
+)
 from app.services.export import export_story_markdown
 
 
@@ -79,7 +89,12 @@ class ProvenanceSpanInput(BaseModel):
 # ---------- Helper functions ----------
 
 
-def _row_to_node(row, spans: list[dict] | None = None) -> dict:
+def _row_to_node(
+    row,
+    spans: list[dict] | None = None,
+    char_mentions: list[dict] | None = None,
+    analysis: StoryAnalysis | None = None,
+) -> dict:
     """Convert a database row to a NodeResponse dict."""
     return {
         "id": row["id"],
@@ -92,6 +107,8 @@ def _row_to_node(row, spans: list[dict] | None = None) -> dict:
         "is_draft": bool(row["is_draft"]),
         "created_at": row["created_at"],
         "provenance_spans": spans or [],
+        "character_mentions": char_mentions or [],
+        "analysis": analysis,
     }
 
 
@@ -184,7 +201,7 @@ async def list_stories():
 
 @router.get("/{story_id}", response_model=StoryResponse)
 async def get_story(story_id: str):
-    """Get a story with its full node tree and provenance spans."""
+    """Get a story with its full node tree, provenance spans, character mentions, and analyses."""
     async with get_db() as db:
         story_rows = await db.execute_fetchall(
             "SELECT * FROM stories WHERE id = ?", (story_id,)
@@ -200,8 +217,15 @@ async def get_story(story_id: str):
         # Fetch all provenance spans for this story's nodes
         node_ids = [r["id"] for r in node_rows]
         spans_by_node: dict[str, list[dict]] = {nid: [] for nid in node_ids}
+        mentions_by_node: dict[str, list[dict]] = {nid: [] for nid in node_ids}
+        analysis_by_node: dict[str, StoryAnalysis | None] = {
+            nid: None for nid in node_ids
+        }
+
         if node_ids:
             placeholders = ", ".join("?" for _ in node_ids)
+
+            # Provenance spans
             span_rows = await db.execute_fetchall(
                 f"SELECT node_id, start_offset, end_offset, source FROM provenance_spans WHERE node_id IN ({placeholders}) ORDER BY start_offset",
                 tuple(node_ids),
@@ -215,8 +239,42 @@ async def get_story(story_id: str):
                     }
                 )
 
+            # Character mentions
+            char_rows = await db.execute_fetchall(
+                f"SELECT node_id, character_name, role FROM character_mentions WHERE node_id IN ({placeholders})",
+                tuple(node_ids),
+            )
+            for cr in char_rows:
+                mentions_by_node[cr["node_id"]].append(
+                    {
+                        "character_name": cr["character_name"],
+                        "role": cr["role"],
+                    }
+                )
+
+            # Node analyses
+            analysis_rows = await db.execute_fetchall(
+                f"SELECT node_id, analysis_json FROM node_analyses WHERE node_id IN ({placeholders})",
+                tuple(node_ids),
+            )
+            for ar in analysis_rows:
+                try:
+                    analysis_by_node[ar["node_id"]] = StoryAnalysis.model_validate_json(
+                        ar["analysis_json"]
+                    )
+                except Exception:
+                    pass
+
     story = story_rows[0]
-    nodes = [_row_to_node(r, spans_by_node.get(r["id"], [])) for r in node_rows]
+    nodes = [
+        _row_to_node(
+            r,
+            spans_by_node.get(r["id"], []),
+            mentions_by_node.get(r["id"], []),
+            analysis_by_node.get(r["id"]),
+        )
+        for r in node_rows
+    ]
     path = json.loads(story["active_path"]) if story["active_path"] else []
 
     return StoryResponse(
@@ -227,6 +285,135 @@ async def get_story(story_id: str):
         updated_at=story["updated_at"],
         active_path=path,
         nodes=nodes,
+    )
+
+
+@router.get("/{story_id}/tree", response_model=TreeResponse)
+async def get_story_tree(story_id: str):
+    """Get the full story tree structure for the graph visualizer.
+
+    Returns a recursive tree with character mentions and analyses per node,
+    plus an aggregated characters list for supernode rendering.
+    """
+    async with get_db() as db:
+        story_rows = await db.execute_fetchall(
+            "SELECT * FROM stories WHERE id = ?", (story_id,)
+        )
+        if not story_rows:
+            raise HTTPException(status_code=404, detail="Story not found")
+
+        node_rows = await db.execute_fetchall(
+            "SELECT * FROM nodes WHERE story_id = ? ORDER BY parent_id, position",
+            (story_id,),
+        )
+
+        node_ids = [r["id"] for r in node_rows]
+
+        # Fetch provenance spans, character mentions, and analyses
+        spans_by_node: dict[str, list[dict]] = {nid: [] for nid in node_ids}
+        mentions_by_node: dict[str, list[dict]] = {nid: [] for nid in node_ids}
+        analysis_by_node: dict[str, StoryAnalysis | None] = {
+            nid: None for nid in node_ids
+        }
+
+        if node_ids:
+            placeholders = ", ".join("?" for _ in node_ids)
+
+            span_rows = await db.execute_fetchall(
+                f"SELECT node_id, start_offset, end_offset, source FROM provenance_spans WHERE node_id IN ({placeholders}) ORDER BY start_offset",
+                tuple(node_ids),
+            )
+            for sr in span_rows:
+                spans_by_node[sr["node_id"]].append(
+                    {
+                        "start_offset": sr["start_offset"],
+                        "end_offset": sr["end_offset"],
+                        "source": sr["source"],
+                    }
+                )
+
+            char_rows = await db.execute_fetchall(
+                f"SELECT node_id, character_name, role FROM character_mentions WHERE node_id IN ({placeholders})",
+                tuple(node_ids),
+            )
+            for cr in char_rows:
+                mentions_by_node[cr["node_id"]].append(
+                    {
+                        "character_name": cr["character_name"],
+                        "role": cr["role"],
+                    }
+                )
+
+            analysis_rows = await db.execute_fetchall(
+                f"SELECT node_id, analysis_json FROM node_analyses WHERE node_id IN ({placeholders})",
+                tuple(node_ids),
+            )
+            for ar in analysis_rows:
+                try:
+                    analysis_by_node[ar["node_id"]] = StoryAnalysis.model_validate_json(
+                        ar["analysis_json"]
+                    )
+                except Exception:
+                    pass
+
+    story = story_rows[0]
+    path = json.loads(story["active_path"]) if story["active_path"] else []
+
+    # Build tree from flat node list
+    tree_nodes: dict[str, TreeNodeResponse] = {}
+    root_node: TreeNodeResponse | None = None
+
+    for r in node_rows:
+        nid = r["id"]
+        tree_node = TreeNodeResponse(
+            id=nid,
+            story_id=r["story_id"],
+            parent_id=r["parent_id"],
+            position=r["position"],
+            content=r["content"],
+            node_type=r["node_type"],
+            source=r["source"],
+            is_draft=bool(r["is_draft"]),
+            created_at=r["created_at"],
+            provenance_spans=spans_by_node.get(nid, []),
+            character_mentions=mentions_by_node.get(nid, []),
+            analysis=analysis_by_node.get(nid),
+            children=[],
+        )
+        tree_nodes[nid] = tree_node
+        if r["parent_id"] is None:
+            root_node = tree_node
+
+    # Wire up parent-child relationships
+    for nid, tree_node in tree_nodes.items():
+        if tree_node.parent_id and tree_node.parent_id in tree_nodes:
+            tree_nodes[tree_node.parent_id].children.append(tree_node)
+
+    # Sort children by position
+    for tree_node in tree_nodes.values():
+        tree_node.children.sort(key=lambda c: c.position)
+
+    # Aggregate character supernodes
+    char_to_nodes: dict[str, list[str]] = {}
+    for nid, mentions in mentions_by_node.items():
+        for m in mentions:
+            name = m["character_name"]
+            if name not in char_to_nodes:
+                char_to_nodes[name] = []
+            char_to_nodes[name].append(nid)
+
+    characters = [
+        CharacterSummary(name=name, node_ids=nids)
+        for name, nids in sorted(char_to_nodes.items())
+    ]
+
+    return TreeResponse(
+        story_id=story["id"],
+        title=story["title"],
+        premise=story["premise"],
+        active_path=path,
+        root=root_node,
+        characters=characters,
     )
 
 
@@ -422,6 +609,104 @@ async def reject_node(story_id: str, node_id: str):
         await db.commit()
 
     return None
+
+
+# ---------- Branch switching endpoints ----------
+
+
+@router.patch("/{story_id}/active-path", response_model=StoryResponse)
+async def switch_active_path(story_id: str, req: SwitchPathRequest):
+    """Switch the active path to follow a different branch.
+
+    Walks up the tree from target_node_id via parent_id to build
+    the path from root to target, then updates the story's active_path.
+    """
+    async with get_db() as db:
+        # Verify story exists
+        story_rows = await db.execute_fetchall(
+            "SELECT * FROM stories WHERE id = ?", (story_id,)
+        )
+        if not story_rows:
+            raise HTTPException(status_code=404, detail="Story not found")
+
+        # Verify target node exists and belongs to story
+        target_rows = await db.execute_fetchall(
+            "SELECT * FROM nodes WHERE id = ? AND story_id = ?",
+            (req.target_node_id, story_id),
+        )
+        if not target_rows:
+            raise HTTPException(status_code=404, detail="Target node not found")
+
+        # Build all nodes map for tree traversal
+        all_nodes = await db.execute_fetchall(
+            "SELECT id, parent_id FROM nodes WHERE story_id = ?", (story_id,)
+        )
+        node_parent_map = {r["id"]: r["parent_id"] for r in all_nodes}
+
+        # Walk up from target to root to build path
+        path: list[str] = []
+        current_id: str | None = req.target_node_id
+        visited: set[str] = set()
+
+        while current_id is not None:
+            if current_id in visited:
+                raise HTTPException(
+                    status_code=400, detail="Cycle detected in node tree"
+                )
+            visited.add(current_id)
+            path.append(current_id)
+            current_id = node_parent_map.get(current_id)
+
+        # Reverse to get root → ... → target order
+        path.reverse()
+
+        # Update active_path
+        await db.execute(
+            "UPDATE stories SET active_path = ?, updated_at = datetime('now') WHERE id = ?",
+            (json.dumps(path), story_id),
+        )
+        await db.commit()
+
+        # Return updated story with all nodes
+        story_rows = await db.execute_fetchall(
+            "SELECT * FROM stories WHERE id = ?", (story_id,)
+        )
+        node_rows = await db.execute_fetchall(
+            "SELECT * FROM nodes WHERE story_id = ? ORDER BY parent_id, position",
+            (story_id,),
+        )
+
+        # Fetch provenance spans for response
+        node_ids = [r["id"] for r in node_rows]
+        spans_by_node: dict[str, list[dict]] = {nid: [] for nid in node_ids}
+        if node_ids:
+            placeholders = ", ".join("?" for _ in node_ids)
+            span_rows = await db.execute_fetchall(
+                f"SELECT node_id, start_offset, end_offset, source FROM provenance_spans WHERE node_id IN ({placeholders}) ORDER BY start_offset",
+                tuple(node_ids),
+            )
+            for sr in span_rows:
+                spans_by_node[sr["node_id"]].append(
+                    {
+                        "start_offset": sr["start_offset"],
+                        "end_offset": sr["end_offset"],
+                        "source": sr["source"],
+                    }
+                )
+
+    story = story_rows[0]
+    nodes = [_row_to_node(r, spans_by_node.get(r["id"], [])) for r in node_rows]
+    updated_path = json.loads(story["active_path"]) if story["active_path"] else []
+
+    return StoryResponse(
+        id=story["id"],
+        title=story["title"],
+        premise=story["premise"],
+        created_at=story["created_at"],
+        updated_at=story["updated_at"],
+        active_path=updated_path,
+        nodes=nodes,
+    )
 
 
 # ---------- Export endpoints ----------

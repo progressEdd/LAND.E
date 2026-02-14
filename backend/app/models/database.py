@@ -16,16 +16,18 @@ MIGRATIONS_DIR = Path(__file__).parent.parent / "db" / "migrations"
 
 
 async def init_db() -> None:
-    """Create the database file directory if needed and run migration SQL."""
+    """Create the database file directory if needed and run all migration SQL files in order."""
     DB_DIR.mkdir(parents=True, exist_ok=True)
 
-    migration_file = MIGRATIONS_DIR / "001_initial.sql"
-    migration_sql = migration_file.read_text()
+    # Discover and sort all migration files (001_*.sql, 002_*.sql, etc.)
+    migration_files = sorted(MIGRATIONS_DIR.glob("*.sql"))
 
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("PRAGMA journal_mode=WAL")
         await db.execute("PRAGMA foreign_keys=ON")
-        await db.executescript(migration_sql)
+        for migration_file in migration_files:
+            migration_sql = migration_file.read_text()
+            await db.executescript(migration_sql)
         await db.commit()
 
 

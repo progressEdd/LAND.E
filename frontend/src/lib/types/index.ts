@@ -14,6 +14,12 @@ export interface ProvenanceSpan {
 	source: ProvenanceSource;
 }
 
+// A character mention linked to a node
+export interface CharacterMention {
+	character_name: string;
+	role: string | null;
+}
+
 // A node in the story tree (paragraph, block, or sentence)
 export interface StoryNode {
 	id: string;
@@ -26,6 +32,8 @@ export interface StoryNode {
 	is_draft: boolean;
 	created_at: string;
 	provenance_spans: ProvenanceSpan[];
+	character_mentions: CharacterMention[];
+	analysis: StoryAnalysis | null;
 }
 
 // A story with its tree of nodes
@@ -59,4 +67,32 @@ export interface StoryAnalysis {
 	continuity_landmines: string[];
 	ambiguities: string[];
 	next_paragraph_seeds: string[];
+}
+
+// ---------- Graph visualizer types ----------
+
+// Aggregated character data for supernode rendering
+export interface CharacterSummary {
+	name: string;
+	node_ids: string[];
+}
+
+// A tree node with recursive children (for graph visualizer)
+export interface TreeNode extends StoryNode {
+	children: TreeNode[];
+}
+
+// Full tree response from the /tree endpoint
+export interface TreeResponse {
+	story_id: string;
+	title: string;
+	premise: string;
+	active_path: string[];
+	root: TreeNode | null;
+	characters: CharacterSummary[];
+}
+
+// Request to switch active path to a different branch
+export interface SwitchPathRequest {
+	target_node_id: string;
 }

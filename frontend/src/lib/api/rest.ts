@@ -3,7 +3,8 @@ import type {
 	StoryNode,
 	LLMConfig,
 	NodeType,
-	ProvenanceSource
+	ProvenanceSource,
+	TreeResponse
 } from '$lib/types';
 
 /**
@@ -105,6 +106,19 @@ class ApiClient {
 	async rejectNode(storyId: string, nodeId: string): Promise<void> {
 		return this.request<void>(`/api/stories/${storyId}/nodes/${nodeId}/reject`, {
 			method: 'POST'
+		});
+	}
+
+	// ---------- Graph / Tree ----------
+
+	async getStoryTree(storyId: string): Promise<TreeResponse> {
+		return this.request<TreeResponse>(`/api/stories/${storyId}/tree`);
+	}
+
+	async switchActivePath(storyId: string, targetNodeId: string): Promise<Story> {
+		return this.request<Story>(`/api/stories/${storyId}/active-path`, {
+			method: 'PATCH',
+			body: JSON.stringify({ target_node_id: targetNodeId })
 		});
 	}
 

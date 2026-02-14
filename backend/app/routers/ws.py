@@ -9,7 +9,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.models.database import get_db
 from app.routers.llm import _current_config
 from app.services.llm import create_llm_client
-from app.services.story import run_cycle
+from app.services.story import run_cycle, extract_characters
 
 
 router = APIRouter(tags=["websocket"])
@@ -175,6 +175,24 @@ async def websocket_generate(websocket: WebSocket):
                                 """INSERT INTO provenance_spans (id, node_id, start_offset, end_offset, source)
                                    VALUES (?, ?, 0, ?, 'ai_generated')""",
                                 (span_id, draft_id, len(accumulated)),
+                            )
+
+                        # Persist analysis for this node
+                        analysis_id = uuid.uuid4().hex
+                        await db.execute(
+                            """INSERT OR REPLACE INTO node_analyses (id, node_id, analysis_json)
+                               VALUES (?, ?, ?)""",
+                            (analysis_id, draft_id, result.analysis.model_dump_json()),
+                        )
+
+                        # Extract and persist character mentions
+                        characters = extract_characters(result.analysis.cast)
+                        for char_name, char_role in characters:
+                            char_id = uuid.uuid4().hex
+                            await db.execute(
+                                """INSERT OR IGNORE INTO character_mentions (id, node_id, character_name, role)
+                                   VALUES (?, ?, ?, ?)""",
+                                (char_id, draft_id, char_name, char_role),
                             )
 
                         await db.commit()

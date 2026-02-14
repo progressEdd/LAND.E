@@ -19,6 +19,45 @@ class CycleResult:
     analysis: StoryAnalysis
 
 
+def extract_characters(cast: list[str]) -> list[tuple[str, str | None]]:
+    """Extract character names and roles from StoryAnalysis.cast entries.
+
+    Each cast entry is typically formatted as:
+        "Name — role/goal/conflict; ties."
+
+    Returns deduplicated list of (character_name, role) tuples.
+    """
+    seen: set[str] = set()
+    results: list[tuple[str, str | None]] = []
+
+    for entry in cast:
+        entry = entry.strip()
+        if not entry:
+            continue
+
+        # Try splitting on em dash
+        if " — " in entry:
+            name, role = entry.split(" — ", 1)
+            name = name.strip()
+            role = role.strip() or None
+        elif " - " in entry:
+            # Fallback: regular dash
+            name, role = entry.split(" - ", 1)
+            name = name.strip()
+            role = role.strip() or None
+        else:
+            name = entry
+            role = None
+
+        # Deduplicate by normalized name (case-insensitive)
+        name_lower = name.lower()
+        if name_lower not in seen and name:
+            seen.add(name_lower)
+            results.append((name, role))
+
+    return results
+
+
 async def run_cycle(
     client: OpenAI,
     *,
