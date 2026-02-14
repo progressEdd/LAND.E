@@ -80,8 +80,8 @@ Plans:
 **Plans:** 6 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Backend scaffold: FastAPI, SQLite schema, LLM service, story pipeline
-- [ ] 02-02-PLAN.md — Frontend scaffold: SvelteKit SPA, Tailwind, layout shell, sidebars, theme
+- [x] 02-01-PLAN.md — Backend scaffold: FastAPI, SQLite schema, LLM service, story pipeline
+- [x] 02-02-PLAN.md — Frontend scaffold: SvelteKit SPA, Tailwind, layout shell, sidebars, theme
 - [ ] 02-03-PLAN.md — Tiptap editor with custom provenance mark extension and toolbar
 - [ ] 02-04-PLAN.md — REST API endpoints, frontend API client, settings panel
 - [ ] 02-05-PLAN.md — WebSocket generation streaming, inline draft flow in editor
@@ -97,4 +97,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Template Preparation | 1/1 | Complete | 2026-02-13 |
 | 2. Branch Creation Flow | 1/1 | Complete | 2026-02-13 |
 | 3. Root README Index | 1/1 | Complete | 2026-02-13 |
-| 4. Webapp UI | 0/6 | Planned | — |
+| 4. Webapp UI | 2/6 | In progress | — |
