@@ -2,7 +2,7 @@ import type { StoryAnalysis } from '$lib/types';
 
 // Message types sent from client to server
 export type WSClientMessage =
-	| { type: 'generate'; story_id: string; node_id: string; model: string }
+	| { type: 'generate'; story_id: string; node_id: string; model: string; seed?: string }
 	| { type: 'cancel' }
 	| { type: 'accept'; node_id: string; content: string; provenance_spans: ProvenanceSpanData[] }
 	| { type: 'reject'; node_id: string };

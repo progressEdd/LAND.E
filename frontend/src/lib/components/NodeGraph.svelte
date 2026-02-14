@@ -9,8 +9,11 @@
 	// ---- Layout constants ----
 	const P_RADIUS = 14;                // paragraph node radius
 	const CHAR_RADIUS = 18;             // character supernode radius
+	const SEED_RADIUS = 10;             // seed node radius
 	const TREE_SPACING_X = 50;          // horizontal gap between sibling branches
 	const TREE_SPACING_Y = 52;          // vertical gap between tree levels
+	const SEED_SPACING_X = 40;          // horizontal gap between seed nodes
+	const SEED_OFFSET_Y = 44;           // vertical offset of seeds below their parent
 	const CHAR_COLUMN_X_OFFSET = 60;    // character column offset from rightmost paragraph node
 	const CHAR_SPACING_Y = 48;          // vertical gap between character supernodes
 	const PADDING = 30;
@@ -79,9 +82,19 @@
 		isActive: boolean;
 	}
 
+	interface PositionedSeed {
+		index: number;
+		text: string;
+		x: number;
+		y: number;
+		parentX: number;
+		parentY: number;
+	}
+
 	interface GraphLayout {
 		paragraphs: PositionedParagraph[];
 		characters: PositionedCharacter[];
+		seeds: PositionedSeed[];
 		treeEdges: TreeEdge[];
 		width: number;
 		height: number;
@@ -163,14 +176,44 @@
 			return pc;
 		});
 
-		// 5. Compute total SVG dimensions
+		// 5. Position seed nodes below the last active paragraph node
+		const seeds: PositionedSeed[] = [];
+		const analysisSeeds = generationState.lastAnalysis?.next_paragraph_seeds ?? [];
+		const showSeeds = analysisSeeds.length > 0 && generationState.status === 'idle';
+
+		if (showSeeds) {
+			// Find the last active paragraph node
+			const activePath = td.active_path ?? [];
+			const lastActiveId = activePath[activePath.length - 1];
+			const lastActivePara = paragraphs.find((p) => p.id === lastActiveId);
+
+			if (lastActivePara) {
+				const seedCount = analysisSeeds.length;
+				const totalWidth = (seedCount - 1) * SEED_SPACING_X;
+				const startX = lastActivePara.x - totalWidth / 2;
+
+				for (let i = 0; i < seedCount; i++) {
+					seeds.push({
+						index: i,
+						text: analysisSeeds[i],
+						x: startX + i * SEED_SPACING_X,
+						y: lastActivePara.y + SEED_OFFSET_Y,
+						parentX: lastActivePara.x,
+						parentY: lastActivePara.y,
+					});
+				}
+			}
+		}
+
+		// 6. Compute total SVG dimensions
 		const rightmost = characters.length > 0 ? charX + CHAR_RADIUS + PADDING : treeRight + PADDING;
 		const bottomPara = Math.max(...paragraphs.map((p) => p.y)) + P_RADIUS + PADDING;
 		const bottomChar = characters.length > 0 ? Math.max(...characters.map((c) => c.y)) + CHAR_RADIUS + PADDING : 0;
+		const bottomSeed = seeds.length > 0 ? Math.max(...seeds.map((s) => s.y)) + SEED_RADIUS + PADDING : 0;
 		const w = rightmost;
-		const h = Math.max(bottomPara, bottomChar, 100);
+		const h = Math.max(bottomPara, bottomChar, bottomSeed, 100);
 
-		return { paragraphs, characters, treeEdges, width: w, height: h };
+		return { paragraphs, characters, seeds, treeEdges, width: w, height: h };
 	});
 
 	// ---- Helpers ----
@@ -179,11 +222,9 @@
 		return text.slice(0, max - 1) + '\u2026';
 	}
 
-	/** Derive initials from a character name: "John Doe" → "JD", "Gandalf" → "G" */
-	function initials(name: string): string {
-		const parts = name.trim().split(/\s+/);
-		if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-		return parts.map((p) => p.charAt(0).toUpperCase()).join('');
+	/** First letter of a character name, uppercased */
+	function initial(name: string): string {
+		return name.trim().charAt(0).toUpperCase();
 	}
 
 	function handleNodeClick(nodeId: string): void {
@@ -191,6 +232,15 @@
 		const storyId = storyState.activeStoryId;
 		if (!storyId) return;
 		graphState.switchBranch(storyId, nodeId);
+	}
+
+	function handleSeedClick(seed: PositionedSeed): void {
+		const storyId = storyState.activeStoryId;
+		if (!storyId) return;
+		const activePath = graphState.treeData?.active_path ?? [];
+		const lastNodeId = activePath[activePath.length - 1];
+		if (!lastNodeId) return;
+		generationState.startGeneration(storyId, lastNodeId, seed.text);
 	}
 
 	// ---- Tooltip state ----
@@ -225,6 +275,17 @@
 			title: c.name,
 			body: `Appears in ${c.nodeIds.length} paragraph${c.nodeIds.length !== 1 ? 's' : ''}`,
 			color: c.color,
+		};
+	}
+
+	function showSeedTooltip(e: MouseEvent, s: PositionedSeed): void {
+		const rect = graphScrollEl?.getBoundingClientRect();
+		if (!rect) return;
+		tooltip = {
+			x: e.clientX - rect.left + graphScrollEl!.scrollLeft,
+			y: e.clientY - rect.top + graphScrollEl!.scrollTop,
+			title: `Seed ${s.index + 1}`,
+			body: s.text,
 		};
 	}
 
@@ -404,9 +465,39 @@
 								text-anchor="middle"
 								dominant-baseline="middle"
 							>
-								{initials(c.name)}
+								{initial(c.name)}
 							</text>
 
+						</g>
+					{/each}
+
+					<!-- Seed nodes -->
+					{#each layout.seeds as s (s.index)}
+						<line
+							x1={s.parentX} y1={s.parentY}
+							x2={s.x} y2={s.y}
+							class="seed-edge"
+						/>
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<g
+							class="seed-group"
+							onclick={() => handleSeedClick(s)}
+							onmouseenter={(e) => showSeedTooltip(e, s)}
+							onmouseleave={hideTooltip}
+						>
+							<circle
+								cx={s.x} cy={s.y} r={SEED_RADIUS}
+								class="seed-circle"
+							/>
+							<text
+								x={s.x} y={s.y + 1}
+								class="seed-label"
+								text-anchor="middle"
+								dominant-baseline="middle"
+							>
+								{s.index + 1}
+							</text>
 						</g>
 					{/each}
 				</g>
@@ -585,6 +676,39 @@
 
 	.char-group {
 		cursor: default;
+	}
+
+	/* ---- Seed nodes ---- */
+	.seed-edge {
+		stroke: #fbbf24;
+		stroke-width: 1;
+		stroke-dasharray: 3 3;
+		opacity: 0.5;
+	}
+
+	.seed-circle {
+		fill: var(--hover-bg, #1f2937);
+		stroke: #fbbf24;
+		stroke-width: 1.5;
+		stroke-dasharray: 3 2;
+		transition: fill 150ms ease, stroke 150ms ease;
+	}
+
+	.seed-label {
+		fill: #fbbf24;
+		font-size: 8px;
+		font-weight: 700;
+		font-family: monospace;
+		pointer-events: none;
+	}
+
+	.seed-group {
+		cursor: pointer;
+	}
+
+	.seed-group:hover .seed-circle {
+		fill: rgba(251, 191, 36, 0.2);
+		stroke: #f59e0b;
 	}
 
 	/* ---- Custom tooltip ---- */

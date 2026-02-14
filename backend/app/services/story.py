@@ -64,6 +64,7 @@ async def run_cycle(
     model: str,
     premise: str,
     story_text: str,
+    seed: str | None = None,
     temperature_continue: float = 0.2,
     temperature_analyze: float = 0.2,
 ) -> CycleResult:
@@ -74,6 +75,9 @@ async def run_cycle(
     1. Analyze the story so far (StoryAnalysis) to extract continuity anchors.
     2. Use the analysis summary to generate the next paragraph (StoryContinue).
     3. Return CycleResult with the draft text and analysis.
+
+    If *seed* is provided, it is injected as a directional hint into the
+    continuation prompt so the LLM steers toward that story beat.
     """
     # Analyze (premise + approved story text)
     analysis_input = f"Premise:\n{premise}\n\nStory text:\n{story_text}"
@@ -85,11 +89,12 @@ async def run_cycle(
         temperature=temperature_analyze,
     )
 
-    # Continue (use analysis summary)
+    # Continue (use analysis summary, optionally guided by a seed)
+    seed_hint = f"\n\nDirectional seed (follow this beat):\n{seed}" if seed else ""
     cont_input = (
         f"Premise:\n{premise}\n\n"
         f"Story analysis summary:\n{analysis.model_dump_json(indent=2)}\n\n"
-        "Write the next paragraph."
+        f"Write the next paragraph.{seed_hint}"
     )
     continuation = await parse_structured(
         client,

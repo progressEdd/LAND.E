@@ -41,7 +41,7 @@ class GenerationState {
 		wsClient.disconnect();
 	}
 
-	startGeneration(storyId: string, nodeId: string): void {
+	startGeneration(storyId: string, nodeId: string, seed?: string): void {
 		this.status = 'generating';
 		this.draftContent = '';
 		this.draftNodeId = null;
@@ -51,12 +51,15 @@ class GenerationState {
 
 		const model = settingsState.model;
 
-		wsClient.send({
+		const msg: { type: 'generate'; story_id: string; node_id: string; model: string; seed?: string } = {
 			type: 'generate',
 			story_id: storyId,
 			node_id: nodeId,
 			model
-		});
+		};
+		if (seed) msg.seed = seed;
+
+		wsClient.send(msg);
 	}
 
 	cancelGeneration(): void {

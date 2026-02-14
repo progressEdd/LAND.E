@@ -147,6 +147,7 @@ async def websocket_generate(websocket: WebSocket):
                         model=model,
                         premise=premise,
                         story_text=story_text,
+                        seed=msg.get("seed"),
                     )
 
                     # Stream the draft text character-by-character
