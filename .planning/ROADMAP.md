@@ -64,6 +64,8 @@ Plans:
 ### Phase 4: Webapp UI
 **Goal**: A working story writer webapp with AI generation, inline provenance tracking, structured analysis, and persistence — replacing the marimo notebook
 **Depends on**: Nothing (independent milestone, existing marimo app is reference only)
+**Branch**: `webapp-ui` (forked from `00-experiments`)
+**Worktree**: `02-worktrees/webapp-ui/` — all code lives here (`backend/` and `frontend/` subdirs). Plans and docs remain on the `development` branch in `.planning/`.
 **Success Criteria** (what must be TRUE):
   1. FastAPI backend starts with SQLite database (stories, nodes, provenance_spans tables)
   2. SvelteKit frontend renders with collapsible sidebars, split pane layout, dark/light theme

@@ -12,7 +12,7 @@ Replace the current marimo notebook story writer with a purpose-built webapp. Th
 |----------|--------|-------|
 | Backend | FastAPI + Uvicorn | Python, ports existing LLM client/structured output code |
 | Frontend | Svelte + Tailwind CSS | |
-| Repo structure | Monorepo | `backend/` and `frontend/` in same branch |
+| Repo structure | Monorepo | `backend/` and `frontend/` on the `webapp-ui` branch, worktree at `02-worktrees/webapp-ui/`. All code paths are `02-worktrees/webapp-ui/backend/` and `02-worktrees/webapp-ui/frontend/`. Plans and docs stay on `development` branch. |
 
 ### Editor Experience
 
