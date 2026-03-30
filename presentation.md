@@ -3,6 +3,8 @@
 # Background
 
 # Demo
+## View the webapp
+## Understanding the tech stack
 
 # Improving prompting using structured outputs
 ## What are structured outputs?
