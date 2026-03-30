@@ -10,7 +10,10 @@
 - I have been exploring local llms in my free time
 
 # Demo
-- open running webapp
+- Open running webapp
+- Demo Tech Stack
+  - Frontend - Typescript (bun): Svelte, Tailwind, Vite
+  - Backend - Python (uv): Uvicorn, fastapi, OpenAI, Ollama, Pydantic
 - ```
     webapp-ui/
     ├── backend/           # FastAPI + SQLite
@@ -99,30 +102,30 @@
         <pre><code class="language-markdown">
 class StoryStart(BaseModel):
 
-        """
-        You are a sharp, imaginative fiction writer.
+    """
+    You are a sharp, imaginative fiction writer.
 
-        Task:
-        - Produce (1) a concise, compelling _story _premise and (2) the opening paragraph that launches the _story.
+    Task:
+    - Produce (1) a concise, compelling _story _premise and (2) the opening paragraph that launches the _story.
 
-        Rules:
-        - If the user provides ideas, weave them in organically (don't just repeat them).
-        - If the user provides no ideas, invent something fresh with a surprising combination of
-            genre, setting, protagonist, conflict, and twist.
-        - premise: 2–5 sentences, stakes + hook, no spoilers.
-        - Opening paragraph: 120–180 words, vivid and concrete, minimal clichés, clear POV,
-            grounded scene, ends with a soft hook.
-        - Tone should follow user preferences; default to PG-13 if none are given.
-        - Avoid copying user phrasing verbatim; enrich and reframe.
-        - If user ideas conflict, choose one coherent direction and proceed.
+    Rules:
+    - If the user provides ideas, weave them in organically (don't just repeat them).
+    - If the user provides no ideas, invent something fresh with a surprising combination of
+        genre, setting, protagonist, conflict, and twist.
+    - premise: 2–5 sentences, stakes + hook, no spoilers.
+    - Opening paragraph: 120–180 words, vivid and concrete, minimal clichés, clear POV,
+        grounded scene, ends with a soft hook.
+    - Tone should follow user preferences; default to PG-13 if none are given.
+    - Avoid copying user phrasing verbatim; enrich and reframe.
+    - If user ideas conflict, choose one coherent direction and proceed.
 
-        Output only fields that match this schema.
-        """
+    Output only fields that match this schema.
+    """
 
-        premise: str = Field(..., description="2–5 sentences. Stakes + hook, no spoilers.")
-        opening_paragraph: str = Field(
-            ..., description="120–180 words. Vivid, grounded, ends with a soft hook."
-        )
+    premise: str = Field(..., description="2–5 sentences. Stakes + hook, no spoilers.")
+    opening_paragraph: str = Field(
+        ..., description="120–180 words. Vivid, grounded, ends with a soft hook."
+    )
 </code></pre>
       </td>
     </tr>
