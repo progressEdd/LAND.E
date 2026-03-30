@@ -7,9 +7,28 @@
 
 # Demo
 - open running webapp
-- Vibe Coded Tech Stack
-  - Frontend: Svelte, Tailwind CSS, Vite
-  - Backend: app server (Fastapi, Uvicorn), llm procesing (OpenAI, ollama, Pydantic)
+- ```
+    webapp-ui/
+    ├── backend/           # FastAPI + SQLite
+    │   └── app/
+    │       ├── main.py          # Application entry point
+    │       ├── config.py        # Settings (DB path, CORS, default backend)
+    │       ├── models/          # Database (aiosqlite) + Pydantic schemas
+    │       ├── routers/         # REST (stories, llm) + WebSocket (ws)
+    │       ├── services/        # LLM client factory, story pipeline, export
+    │       └── db/migrations/   # SQLite schema (stories, nodes, provenance_spans)
+    ├── frontend/          # SvelteKit SPA
+    │   └── src/
+    │       ├── routes/          # App shell + main page
+    │       └── lib/
+    │           ├── components/  # Editor, Toolbar, Sidebars, Settings, Analysis
+    │           ├── stores/      # Svelte 5 runes state (editor, story, generation, settings, theme)
+    │           ├── extensions/  # Tiptap custom provenance mark
+    │           ├── api/         # REST client + WebSocket client
+    │           └── types/       # TypeScript interfaces matching backend schemas
+    ├── pyproject.toml     # uv workspace root
+    └── uv.lock
+    ```
 
 # Improving prompting using structured outputs
 - I felt they should use structured outputs, as it simplifies parsing out the llm generated text
