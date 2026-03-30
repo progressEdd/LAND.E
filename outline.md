@@ -5,6 +5,10 @@
 - The original poster used ollama and made a notebook with some starter prompts to come up with a premise, an opening paragraph, and continuing the story with suggested scenarios
 - I wanted to improve their prompting and make a demo ui
 
+# Who am I?
+- Edd Tang, based in Chicago, a AI Engineer in AI&D
+- I have been exploring local llms in my free time
+
 # Demo
 - open running webapp
 - ```
