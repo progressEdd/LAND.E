@@ -1,215 +1,269 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-02-13
+**Analysis Date:** 2026-04-09
 
 ## Directory Layout
 
 ```
-LAND.E/                          # Root worktree (development branch)
+LAND.E/                          # Root worktree (master branch)
 ├── .foam/                            # VS Code Foam extension templates
 │   └── templates/                    # Note templates for daily logs
 │       ├── daily-note.md             # Date-stamped daily note template
 │       └── new-template.md           # Generic Foam template
-├── .planning/                        # GSD AI orchestrator planning system
-│   ├── codebase/                     # Codebase analysis documents (this file lives here)
+├── .planning/                        # AI orchestrator planning system
+│   ├── codebase/                     # Codebase analysis documents
 │   │   ├── ARCHITECTURE.md           # Architecture patterns and data flows
-│   │   └── STRUCTURE.md              # Directory layout and file locations
+│   │   ├── CONCERNS.md               # Tech debt, bugs, risks
+│   │   ├── CONVENTIONS.md            # Coding and naming conventions
+│   │   ├── INTEGRATIONS.md           # External service integrations
+│   │   ├── STACK.md                  # Technology stack details
+│   │   ├── STRUCTURE.md              # This file — directory layout
+│   │   └── TESTING.md                # Testing patterns
 │   ├── phases/                       # Execution phase plans and summaries
-│   │   └── 01-template-preparation/  # Phase 1 artifacts
-│   │       ├── 01-01-PLAN.md         # Plan for README template creation
-│   │       ├── 01-01-SUMMARY.md      # Post-execution summary
-│   │       └── 01-UAT.md             # User acceptance test results
+│   │   ├── 01-template-preparation/  # Phase 1 artifacts
+│   │   └── 02-webapp-ui/            # Phase 4 artifacts (16 plans)
 │   ├── research/                     # Domain research documents
-│   │   ├── ARCHITECTURE.md           # Architecture research (git worktrees, components)
-│   │   ├── FEATURES.md               # Feature landscape and prioritization
-│   │   ├── PITFALLS.md               # Known pitfalls and prevention strategies
-│   │   ├── STACK.md                  # Technology stack research
-│   │   └── SUMMARY.md                # Executive research summary
-│   ├── config.json                   # GSD configuration (mode, depth, model)
-│   ├── PROJECT.md                    # Project definition and requirements
-│   ├── REQUIREMENTS.md               # Formal requirements with traceability
+│   ├── config.json                   # GSD configuration
+│   ├── PROJECT.md                    # Project definition
+│   ├── REQUIREMENTS.md               # Formal requirements
 │   ├── ROADMAP.md                    # Phase definitions and progress
-│   └── STATE.md                      # Current execution state and metrics
+│   └── STATE.md                      # Current execution state
 ├── 00-dev-log/                       # Development journal entries
-│   ├── 00-template.md                # Template for new dev log entries
-│   ├── 2025-12-28.md                 # Dev log: UI tweaks, marimo styling
-│   └── 2025-12-29.md                 # Dev log: Firefox screenshot fixes
+│   ├── 00-template.md
+│   ├── 2025-12-28.md
+│   ├── 2025-12-29.md
+│   └── 2025-12-30.md
 ├── 00-supporting-files/              # Shared data and media assets
-│   ├── data/                         # Configuration samples
-│   │   └── sample.env.file           # Environment variable template (DO NOT read)
-│   └── images/                       # Screenshots and media
-│       ├── 2025-12-28/               # Date-organized screenshots
-│       ├── 2025-12-29/               # Date-organized screenshots
-│       └── README/                   # README-specific images and demos
+│   ├── data/
+│   │   └── sample.env.file           # Environment variable template
+│   └── images/                       # Screenshots organized by date/purpose
 ├── 01-dev-onboarding/                # Git submodule (empty on worktree branches)
 ├── 02-worktrees/                     # Git worktree container (contents gitignored)
-│   └── README.md                     # Worktree usage instructions
+│   ├── README.md
+│   ├── 00-experiments/               # Base Python environment branch
+│   ├── webapp-ui/                    # PRIMARY APPLICATION — FastAPI + SvelteKit
+│   ├── demo-marimo-app/              # Legacy marimo notebook prototype
+│   ├── experiments-with-models/      # LLM model testing notebooks
+│   ├── source/                       # Exploration notebooks
+│   ├── chinese-prompt/               # Chinese language prompt experiments
+│   └── presentation/                 # Presentation/outlining materials
+├── .bg-shell/                        # Background shell config
+├── .pi/                              # pi coding agent config
 ├── .gitignore                        # Python-focused gitignore + worktree exclusions
-├── .gitmodules                       # Submodule config (01-dev-onboarding)
-├── .python-version                   # Python 3.13 version pin
+├── .gitmodules                       # Submodule config
 ├── LICENSE                           # Project license
-├── pyproject.toml                    # Project metadata and dependencies
-├── README.md                         # Root repo README with project overview
-└── uv.lock                           # Locked dependency resolution
+├── README.md                         # Root repo README with demos and screenshots
+└── .venv/                            # Python virtual environment (root)
 ```
 
-## Directory Purposes
+## Primary Application Structure (webapp-ui)
 
-**`.planning/`:**
-- Purpose: GSD AI orchestrator working directory — all project management happens here
-- Contains: Project definition, requirements, roadmap, state, research, phase plans, codebase analysis
-- Key files: `PROJECT.md` (what to build), `STATE.md` (where we are), `ROADMAP.md` (how to get there)
-- Subdirectory `codebase/`: Machine-generated codebase analysis for GSD context loading
-- Subdirectory `phases/`: One directory per phase, containing plans (`NN-NN-PLAN.md`), summaries (`NN-NN-SUMMARY.md`), and UAT (`NN-UAT.md`)
-- Subdirectory `research/`: Domain research organized by topic (`ARCHITECTURE.md`, `FEATURES.md`, `PITFALLS.md`, `STACK.md`, `SUMMARY.md`)
+```
+02-worktrees/webapp-ui/               # Main application worktree
+├── pyproject.toml                    # uv workspace root config
+├── uv.lock                          # Locked Python dependencies
+├── sandbox.ipynb                    # Scratch notebook
+├── README.md                        # App-specific documentation
+├── .gitignore
+├── .python-version                  # Python 3.13
+├── backend/                         # FastAPI application
+│   ├── main.py                      # uvicorn entry point (imports app.main)
+│   ├── pyproject.toml               # Backend-specific deps
+│   ├── README.md
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py                  # FastAPI app, CORS, lifespan
+│   │   ├── config.py                # Settings (DB, CORS, default backend)
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── database.py          # SQLite init, migrations, async connection
+│   │   │   └── schemas.py           # Pydantic models (209 lines)
+│   │   ├── routers/
+│   │   │   ├── __init__.py
+│   │   │   ├── stories.py           # Story/node CRUD, tree, export (739 lines)
+│   │   │   ├── llm.py               # LLM config, models, warmup (54 lines)
+│   │   │   └── ws.py                # WebSocket generation streaming (307 lines)
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── llm.py               # LLM client factory, structured output (214 lines)
+│   │   │   ├── story.py             # Generation pipeline, character extraction (110 lines)
+│   │   │   └── export.py            # Markdown export (85 lines)
+│   │   └── db/
+│   │       └── migrations/
+│   │           ├── 001_initial.sql         # stories, nodes, provenance_spans
+│   │           └── 002_graph_support.sql   # character_mentions, node_analyses
+│   ├── data/
+│   │   └── stories.db               # SQLite database (auto-created)
+│   └── .venv/                       # Backend Python venv
+└── frontend/                        # SvelteKit SPA
+    ├── package.json                 # Node dependencies
+    ├── package-lock.json            # Locked Node deps
+    ├── bun.lock                     # Bun lockfile
+    ├── svelte.config.js             # Static adapter config
+    ├── vite.config.ts               # Dev server + API proxy
+    ├── tsconfig.json                # TypeScript config
+    ├── .npmrc
+    ├── .gitignore
+    ├── README.md
+    ├── node_modules/
+    ├── .svelte-kit/
+    ├── static/                      # Static assets
+    └── src/
+        ├── app.html                 # HTML shell
+        ├── app.css                  # Tailwind + CSS custom properties (theming)
+        ├── app.d.ts                 # TypeScript declarations
+        ├── routes/
+        │   ├── +layout.svelte       # App shell: splitpanes, sidebars (193 lines)
+        │   ├── +layout.ts           # Prerender config
+        │   └── +page.svelte         # Main page: editor or welcome (105 lines)
+        └── lib/
+            ├── index.ts
+            ├── components/
+            │   ├── Editor.svelte            # Tiptap editor + provenance (358 lines)
+            │   ├── EditorToolbar.svelte     # Formatting toolbar (227 lines)
+            │   ├── GenerationControls.svelte # Accept/reject/generate (246 lines)
+            │   ├── NodeGraph.svelte        # SVG tree visualizer (824 lines)
+            │   ├── AnalysisPanel.svelte     # Story analysis cards (193 lines)
+            │   ├── AnalysisCard.svelte      # Single analysis field (97 lines)
+            │   ├── SettingsPanel.svelte     # LLM config, story mgmt (518 lines)
+            │   └── Sidebar.svelte           # Collapsible sidebar (108 lines)
+            ├── stores/
+            │   ├── editor.svelte.ts         # Editor state (55 lines)
+            │   ├── generation.svelte.ts     # WebSocket + generation state (134 lines)
+            │   ├── graph.svelte.ts          # Graph tree data (44 lines)
+            │   ├── settings.svelte.ts       # LLM config (14 lines)
+            │   ├── story.svelte.ts          # Story CRUD (128 lines)
+            │   └── theme.svelte.ts          # Dark/light theme (16 lines)
+            ├── api/
+            │   ├── rest.ts                  # REST API client (150 lines)
+            │   └── ws.ts                    # WebSocket client (123 lines)
+            ├── extensions/
+            │   └── provenance.ts            # Tiptap provenance mark (39 lines)
+            └── types/
+                └── index.ts                 # TypeScript interfaces (98 lines)
+```
 
-**`.foam/templates/`:**
-- Purpose: VS Code Foam extension templates for creating new notes
-- Contains: `daily-note.md` (date-stamped template with `${CURRENT_YEAR}` variables), `new-template.md` (generic template)
-- Used with: VS Code command `Foam: Create New Note From Template`
+## Codebase Size
 
-**`00-dev-log/`:**
-- Purpose: Daily development journal — progress tracking, learning notes, decision rationale
-- Contains: Date-stamped markdown files following `YYYY-MM-DD.md` naming
-- Template: `00-template.md` provides the base structure (sections: Overall Progress, Elaboration)
-- Convention: Entries reference images from `00-supporting-files/images/<date>/`
-
-**`00-supporting-files/`:**
-- Purpose: Shared assets that support documentation — screenshots, sample configs, demo media
-- Contains: `data/` for configuration templates, `images/` for screenshots organized by date
-- Key constraint: `sample.env.file` exists in `data/` — note existence only, never read contents
-- Images follow `images/<date>/` or `images/<purpose>/` naming
-
-**`01-dev-onboarding/`:**
-- Purpose: Git submodule pointing to `https://github.com/progressEdd/dev-onboarding.git`
-- Status: Empty directory on worktree branches (submodules are incompatible with git worktrees)
-- Exists only on `master`/`development` branches — project branches forked from `00-experiments` do not have this
-
-**`02-worktrees/`:**
-- Purpose: Container for all git worktree checkouts — keeps the root clean
-- Contents: Gitignored (`02-worktrees/*` in `.gitignore`) except `README.md`
-- Active worktrees: `00-experiments`, `demo-marimo-app`, `experiments-with-models`, `marimo-tests`, `use_case`
-- Convention: Worktree path basename must match branch name exactly
+| Area | Files | Lines |
+|------|-------|-------|
+| Backend Python | 13 source files | ~1,822 lines |
+| Frontend TypeScript/Svelte | 21 source files | ~3,672 lines |
+| Database migrations | 2 SQL files | ~65 lines |
+| Planning documents | 50+ markdown files | ~5,000+ lines |
+| **Total application code** | **~36 files** | **~5,500 lines** |
 
 ## Key File Locations
 
 **Entry Points:**
-- `README.md`: Root repo overview, project description, active experiments table
-- `.planning/PROJECT.md`: GSD project definition — the "what to build" document
-- `.planning/STATE.md`: Current execution position — the "where are we" document
-- `02-worktrees/README.md`: Worktree usage guide with creation/removal commands
+- `02-worktrees/webapp-ui/backend/main.py` → `uv run uvicorn app.main:app --reload --port 8000`
+- `02-worktrees/webapp-ui/frontend/src/routes/+page.svelte` → `bun run dev`
+- `02-worktrees/demo-marimo-app/app.py` → `uv run marimo run app.py` (legacy)
+- Root `README.md` → Project overview with demos
 
 **Configuration:**
-- `pyproject.toml`: Python project metadata, dependencies (`ipykernel`, `marimo`, `ollama`, `openai`)
-- `.python-version`: Python version pin (`3.13`)
-- `uv.lock`: Locked dependency resolution for reproducible environments
-- `.gitignore`: Python-focused with worktree exclusions, marimo `__marimo__` exclusion
-- `.gitmodules`: Submodule reference (`01-dev-onboarding`)
-- `.planning/config.json`: GSD mode (`yolo`), depth (`standard`), model profile (`codex`)
+- `02-worktrees/webapp-ui/backend/app/config.py` → Backend settings (DB path, CORS, default LLM)
+- `02-worktrees/webapp-ui/frontend/vite.config.ts` → API proxy to localhost:8000
+- `02-worktrees/webapp-ui/frontend/svelte.config.js` → Static adapter, prerender
+- `02-worktrees/webapp-ui/pyproject.toml` → uv workspace root
+- `02-worktrees/webapp-ui/backend/pyproject.toml` → Backend Python deps
+- `02-worktrees/webapp-ui/frontend/package.json` → Frontend Node deps
+- `.planning/config.json` → GSD/pi configuration
 
-**Core Planning:**
-- `.planning/REQUIREMENTS.md`: Formal requirements with IDs (TMPL-01, WKTR-01, etc.) and traceability
-- `.planning/ROADMAP.md`: Phase definitions, success criteria, progress tracking
-- `.planning/research/SUMMARY.md`: Executive research summary with confidence assessments
-- `.planning/research/PITFALLS.md`: Known git worktree pitfalls and prevention strategies
+**Database:**
+- `02-worktrees/webapp-ui/backend/app/db/migrations/001_initial.sql` → Core schema (stories, nodes, provenance_spans)
+- `02-worktrees/webapp-ui/backend/app/db/migrations/002_graph_support.sql` → Graph tables (character_mentions, node_analyses)
+- `02-worktrees/webapp-ui/backend/data/stories.db` → SQLite database (auto-created)
 
-**Documentation:**
-- `00-dev-log/2025-12-28.md`: UI tweaks, marimo styling, ChatGPT-assisted development
-- `00-dev-log/2025-12-29.md`: Firefox screenshot fix, CSS overrides for marimo
+**Core Backend Logic:**
+- `backend/app/services/llm.py` → LLM client factory + structured output parsing
+- `backend/app/services/story.py` → Generation pipeline (analyze → continue)
+- `backend/app/routers/ws.py` → WebSocket generation streaming
+- `backend/app/routers/stories.py` → Full CRUD REST API
+- `backend/app/models/schemas.py` → All Pydantic models
+
+**Core Frontend Logic:**
+- `frontend/src/lib/components/NodeGraph.svelte` → SVG tree visualizer (largest component)
+- `frontend/src/lib/components/Editor.svelte` → Tiptap editor with provenance marks
+- `frontend/src/lib/components/SettingsPanel.svelte` → LLM config + story management
+- `frontend/src/lib/stores/generation.svelte.ts` → WebSocket state machine
+- `frontend/src/lib/stores/story.svelte.ts` → Story CRUD with caching
+- `frontend/src/routes/+layout.svelte` → App shell layout
+
+## Where to Add New Code
+
+**New Backend Endpoint:**
+- Router: `backend/app/routers/` (add to existing or create new router)
+- Schema: `backend/app/models/schemas.py` (Pydantic models)
+- Service: `backend/app/services/` (business logic)
+- Migration: `backend/app/db/migrations/NNN_name.sql` (schema changes)
+
+**New Frontend Component:**
+- Component: `frontend/src/lib/components/NewComponent.svelte`
+- Store: `frontend/src/lib/store/new-store.svelte.ts` (if stateful)
+- Types: `frontend/src/lib/types/index.ts` (TypeScript interfaces)
+
+**New Experiment/Feature Project:**
+- Create via: `git worktree add -b <name> 02-worktrees/<name> 00-experiments`
+- Primary code: `02-worktrees/<name>/`
+
+**New Dev Log Entry:**
+- Location: `00-dev-log/YYYY-MM-DD.md`
+- Screenshots: `00-supporting-files/images/YYYY-MM-DD/`
 
 ## Naming Conventions
 
 **Files:**
-- Markdown docs: `UPPERCASE.md` for GSD system docs (`PROJECT.md`, `REQUIREMENTS.md`, `STATE.md`)
-- Dev logs: `YYYY-MM-DD.md` (e.g., `2025-12-28.md`)
-- Phase plans: `NN-NN-PLAN.md` where first NN is phase number, second is plan number (e.g., `01-01-PLAN.md`)
-- Phase summaries: `NN-NN-SUMMARY.md` (e.g., `01-01-SUMMARY.md`)
-- UAT files: `NN-UAT.md` (e.g., `01-UAT.md`)
-- Config files: lowercase with dots (`config.json`, `pyproject.toml`, `.python-version`)
-- Templates: `00-template.md` (zero-prefix signals "template, not content")
+- Markdown docs: `UPPERCASE.md` for GSD system docs
+- Dev logs: `YYYY-MM-DD.md`
+- Phase plans: `NN-NN-PLAN.md`
+- Python: `snake_case.py`
+- TypeScript/Svelte: `PascalCase.svelte` for components, `camelCase.ts` for utilities
+- Database migrations: `NNN_descriptive_name.sql`
 
 **Directories:**
-- Numbered prefix convention: `NN-descriptive-name` (e.g., `00-dev-log`, `01-dev-onboarding`, `02-worktrees`)
-- Zero-prefix (`00-`) for shared/template directories
-- Planning subdirs: lowercase plural (`phases/`, `research/`, `codebase/`)
-- Phase dirs: `NN-kebab-case` matching phase name (e.g., `01-template-preparation`)
-- Image dirs: `YYYY-MM-DD` for date-organized screenshots, `README` for purpose-organized
+- Root directories: `NN-descriptive-name` numbered prefix
+- Backend: `app/` with `models/`, `routers/`, `services/`, `db/`
+- Frontend: `src/lib/` with `components/`, `stores/`, `api/`, `extensions/`, `types/`
+- Phase dirs: `NN-phase-name/`
 
 **Branches:**
-- `00-experiments`: Base environment branch (numbered prefix matches directory convention)
-- Project branches: `kebab-case` descriptive names (e.g., `demo-marimo-app`, `experiments-with-models`)
-- Template branches: `master` (main), `development` (active work)
-- No strict naming enforcement — user picks meaningful names (per anti-feature A4 in research)
-
-## Where to Add New Code
-
-**New Experiment/Feature Project:**
-- Create via: `git worktree add -b <name> 02-worktrees/<name> 00-experiments`
-- Primary code: `02-worktrees/<name>/` (Python files, notebooks, app code)
-- Dependencies: `02-worktrees/<name>/pyproject.toml` (update name, add deps with `uv add`)
-- Tests: Co-located in the worktree (no test convention established yet)
-- README: Auto-populated from template on `00-experiments` branch
-
-**New Dev Log Entry:**
-- Location: `00-dev-log/YYYY-MM-DD.md`
-- Template: Copy from `00-dev-log/00-template.md` or use Foam's `Create New Note From Template`
-- Screenshots: Save to `00-supporting-files/images/YYYY-MM-DD/`
-
-**New GSD Phase:**
-- Phase directory: `.planning/phases/NN-phase-name/`
-- Plan files: `.planning/phases/NN-phase-name/NN-PP-PLAN.md`
-- Summary files: `.planning/phases/NN-phase-name/NN-PP-SUMMARY.md`
-- UAT file: `.planning/phases/NN-phase-name/NN-UAT.md`
-
-**New Research Document:**
-- Location: `.planning/research/TOPIC.md`
-- Follow existing format: confidence levels, sources, implications for roadmap
-
-**New Codebase Analysis:**
-- Location: `.planning/codebase/DOCNAME.md`
-- Follow template structure from GSD mapping system
-
-**New Supporting Data:**
-- Configuration samples: `00-supporting-files/data/`
-- Images: `00-supporting-files/images/<date-or-purpose>/`
+- `00-experiments`: Base environment
+- Project branches: `kebab-case` (e.g., `webapp-ui`, `demo-marimo-app`)
+- Template branches: `master`, `development`
 
 ## Special Directories
 
-**`.planning/`:**
-- Purpose: GSD AI orchestrator working directory
-- Generated: Partially (codebase docs are AI-generated; project docs are human+AI co-created)
-- Committed: Yes — essential for GSD context continuity across sessions
+**`02-worktrees/webapp-ui/`:**
+- Purpose: Primary application worktree
+- Generated: Partially (node_modules, .venv, data/stories.db auto-created)
+- Committed: Source code yes; runtime artifacts no
+- Backend: Python/FastAPI with SQLite
+- Frontend: SvelteKit SPA with Tiptap editor
+
+**`02-worktrees/demo-marimo-app/`:**
+- Purpose: Legacy marimo notebook prototype (reference implementation)
+- Still functional but superseded by `webapp-ui`
 
 **`02-worktrees/`:**
-- Purpose: Git worktree checkout container
-- Generated: Yes (created by `git worktree add`)
-- Committed: No — contents are gitignored; only `README.md` is tracked
+- Purpose: Container for all git worktree checkouts
+- Contents: Gitignored except `README.md`
+
+**`.planning/`:**
+- Purpose: AI orchestrator working directory
+- Committed: Yes — essential for context continuity
 
 **`.venv/`:**
-- Purpose: Python virtual environment
-- Generated: Yes (created by `uv sync`)
-- Committed: No — gitignored; each worktree has its own `.venv`
-
-**`01-dev-onboarding/`:**
-- Purpose: Git submodule for developer onboarding resources
-- Generated: No (manually configured)
-- Committed: Yes (as submodule reference), but empty in worktree checkouts due to git worktree+submodule incompatibility
-
-**`.foam/`:**
-- Purpose: VS Code Foam extension configuration
-- Generated: No (manually configured)
-- Committed: Yes
+- Purpose: Python virtual environment (one per worktree)
+- Committed: No — gitignored
 
 ## Branch-Specific File Trees
 
-The `master`/`development` branches and `00-experiments` branch have **completely different file trees**. Use this reference when working across branches:
-
-**`development` branch (root worktree):**
+**`master` branch (root worktree):**
 ```
-.foam/, .planning/, 00-dev-log/, 00-supporting-files/,
+.bg-shell/, .foam/, .pi/, .planning/, 00-dev-log/, 00-supporting-files/,
 01-dev-onboarding/, 02-worktrees/,
-.gitignore, .gitmodules, .python-version, LICENSE, README.md,
-pyproject.toml, uv.lock
+.gitignore, .gitmodules, LICENSE, README.md
 ```
 
 **`00-experiments` branch (base for all projects):**
@@ -218,14 +272,17 @@ pyproject.toml, uv.lock
 uv.lock, README.md (template with $placeholders)
 ```
 
-**Project branches (e.g., `demo-marimo-app`):**
+**`webapp-ui` branch (primary application):**
 ```
-.gitignore, .python-version, pyproject.toml, uv.lock,
-README.md, app.py, custom.css, head.html, layouts/, __marimo__/
+backend/ (FastAPI app), frontend/ (SvelteKit SPA),
+pyproject.toml, uv.lock, sandbox.ipynb, README.md
 ```
 
-**Critical rule:** Never branch project work from `master`/`development`. Always branch from `00-experiments` to get the clean Python environment without numbered directories or submodule references.
+**`demo-marimo-app` branch (legacy):**
+```
+app.py, custom.css, head.html, layouts/, pyproject.toml, README.md
+```
 
 ---
 
-*Structure analysis: 2026-02-13*
+*Structure analysis: 2026-04-09*

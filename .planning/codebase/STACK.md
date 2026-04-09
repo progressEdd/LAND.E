@@ -1,120 +1,165 @@
 # Technology Stack
 
-**Analysis Date:** 2026-02-13
+**Analysis Date:** 2026-04-09
 
 ## Languages
 
 **Primary:**
-- Python 3.13 - All application logic, notebooks, and the marimo app (`02-worktrees/demo-marimo-app/app.py`, `02-worktrees/experiments-with-models/*.ipynb`)
+- Python 3.13 — All backend logic (FastAPI app, LLM services, story pipeline, database)
+- TypeScript — Frontend application (SvelteKit components, stores, API clients)
+- Svelte 5 — UI components using runes (`$state`, `$derived`, `$effect`)
 
 **Secondary:**
-- CSS - Custom marimo styling overrides (`02-worktrees/demo-marimo-app/custom.css`)
-- HTML/JavaScript - Screenshot toggle utility (`02-worktrees/demo-marimo-app/head.html`)
-- JSON - Marimo layout files (`02-worktrees/demo-marimo-app/layouts/app.grid.json`), marimo session state (`02-worktrees/demo-marimo-app/__marimo__/`)
+- SQL — SQLite schema migrations and queries
+- CSS — Custom properties for theming, Tailwind CSS 4 utility classes
+- HTML — App shell (`app.html`)
+- JSON — Configuration files, API payloads, lockfiles
 
 ## Runtime
 
-**Environment:**
-- Python 3.13.0 (pinned in `.python-version`, declared in `pyproject.toml` as `requires-python = ">=3.13"`)
-- Runs locally on macOS (darwin platform)
+**Backend:**
+- Python 3.13 (pinned in `.python-version`)
+- uv package manager with workspace support
+- uvicorn with standard extras for auto-reload and WebSocket support
 
-**Package Manager:**
-- uv 0.9.18
-- Lockfile: `uv.lock` — present and committed on all branches
+**Frontend:**
+- Node.js 18+ (runtime for SvelteKit dev/build)
+- bun as package manager
+- Vite 7 dev server with proxy to backend
 
 **Local LLM Runtime:**
-- Ollama 0.13.4 — required for local model serving (primary LLM backend)
-- LM Studio — supported as alternative local backend (OpenAI-compatible API at `http://localhost:1234/v1`)
-- llama.cpp — supported as alternative local backend (OpenAI-compatible API at `http://localhost:8080/v1`)
+- Ollama — Primary local model serving
+- LM Studio — Alternative local backend (OpenAI-compatible at `http://localhost:1234/v1`)
+- llama.cpp — Alternative local backend (OpenAI-compatible at `http://localhost:8080/v1`)
+- OpenAI — Cloud backend option
 
 ## Frameworks
 
-**Core:**
-- marimo >=0.18.4 - Reactive notebook framework used as both the application UI and development environment. The main app is a marimo script, not a traditional web app.
-- pydantic (transitive via openai) - Data validation and structured output schemas (`StoryStart`, `StoryContinue`, `StoryAnalysis` in `02-worktrees/demo-marimo-app/app.py`)
+**Backend:**
+- FastAPI 0.129+ — Async web framework with automatic OpenAPI docs
+- Pydantic 2.11+ — Data validation, serialization, structured output schemas
+- aiosqlite 0.22+ — Async SQLite driver
+- uvicorn 0.40+ — ASGI server (with standard extras for hot reload)
+- websockets 16+ — WebSocket protocol support
+
+**Frontend:**
+- SvelteKit 2 — Full-stack framework (using static adapter for SPA mode)
+- Svelte 5 — UI framework with runes reactivity system
+- Tailwind CSS 4 — Utility-first CSS framework
+- Vite 7 — Build tool and dev server
+
+**Rich Text Editor:**
+- Tiptap 3 — ProseMirror-based rich text editor
+  - `@tiptap/core` — Headless editor engine
+  - `@tiptap/starter-kit` — Basic extensions (bold, italic, headings, etc.)
+  - `@tiptap/extension-text-style` — Text styling support
+  - `@tiptap/pm` — ProseMirror access
+
+**Data Visualization:**
+- d3-hierarchy 3 — Tree layout computation for node graph visualizer
+
+**Layout:**
+- svelte-splitpanes 8 — Resizable split pane layout
 
 **Testing:**
-- None detected. No test framework, no test files, no test configuration.
-
-**Build/Dev:**
-- uv 0.9.18 - Dependency management, virtual environment creation, and script running
-- ipykernel >=6.30.1 - Jupyter kernel support for `.ipynb` notebooks on the `experiments-with-models` branch
-- Foam (VS Code extension) - Note-taking templates in `.foam/templates/`
+- None. No test framework configured for backend or frontend.
 
 ## Key Dependencies
 
-**Critical (declared in `pyproject.toml`):**
-- `marimo>=0.18.4` - The entire UI/app framework. The app runs via `uv run marimo run <app>.py`
-- `ollama>=0.5.3` - Python SDK for Ollama local model server. Used for model listing (`ollama.list()`) and direct chat (`ollama.chat()`)
-- `openai>=1.101.0` - OpenAI Python SDK. Used as the universal LLM client for all backends (OpenAI, Azure, LM Studio, llama.cpp, and Ollama via OpenAI-compatible API). Provides `client.beta.chat.completions.parse()` for structured outputs.
-- `ipykernel>=6.30.1` - Jupyter kernel for running `.ipynb` notebooks interactively
+### Backend Python (backend/pyproject.toml)
 
-**Transitive (via openai/pydantic):**
-- `pydantic` - Used directly for `BaseModel` schemas and `Field` definitions in `02-worktrees/demo-marimo-app/app.py`
-- `httpx` - HTTP transport for the OpenAI SDK (transitive)
-- `anyio` - Async I/O used by OpenAI SDK (transitive)
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `fastapi` | >=0.129.0 | Web framework, routing, middleware, WebSocket |
+| `uvicorn[standard]` | >=0.40.0 | ASGI server with hot reload |
+| `aiosqlite` | >=0.22.1 | Async SQLite driver |
+| `pydantic` | >=2.11.7 | Data validation, structured output schemas |
+| `openai` | >=2.21.0 | Universal LLM client for all backends |
+| `ollama` | >=0.6.1 | Ollama model listing (native SDK) |
+| `websockets` | >=16.0 | WebSocket protocol support |
 
-**Infrastructure:**
-- `git` 2.51.2 - Version control, worktree management, branch-per-project workflow
+### Frontend Node (frontend/package.json)
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `svelte` | ^5.49.2 | UI framework with runes |
+| `@sveltejs/kit` | ^2.50.2 | Full-stack framework |
+| `@sveltejs/adapter-static` | ^3.0.10 | Static SPA output |
+| `@tiptap/core` | ^3.19.0 | Rich text editor engine |
+| `@tiptap/starter-kit` | ^3.19.0 | Default editor extensions |
+| `d3-hierarchy` | ^3.1.2 | Tree layout for graph visualizer |
+| `svelte-splitpanes` | ^8.0.12 | Resizable pane layout |
+| `tailwindcss` | ^4.1.18 | Utility CSS framework |
+| `typescript` | ^5.9.3 | Type checking |
+
+### Root Workspace (pyproject.toml)
+
+Root `pyproject.toml` has minimal dependencies — just a uv workspace pointing to `backend/` as a member.
 
 ## Configuration
 
-**Environment:**
-- No `.env` files present anywhere in the repository
-- `sample.env.file` exists at `00-supporting-files/data/sample.env.file` (reference only, blocked from reading)
-- API keys are entered at runtime through the marimo UI forms (OpenAI API key, Azure endpoint/key), not stored in files
-- Ollama host URL configured via UI radio buttons, defaults to `http://localhost:11434`
-- LM Studio URL defaults to `http://localhost:1234/v1`
-- llama.cpp URL defaults to `http://localhost:8080/v1`
+**Backend:**
+- `backend/app/config.py` — Pydantic Settings with DATABASE_URL, CORS_ORIGINS, DEFAULT_BACKEND
+- `backend/pyproject.toml` — Python project metadata and dependencies
+- Database path: `sqlite:///./data/stories.db` (relative to backend/)
 
-**Build:**
-- `pyproject.toml` - Project metadata, Python version, and dependencies (identical across all branches)
-- `.python-version` - Pins Python 3.13 for uv/pyenv
-- `uv.lock` - Locked dependency resolution, committed to git
+**Frontend:**
+- `frontend/vite.config.ts` — Dev server proxy (`/api` → `localhost:8000`, `/ws` → WebSocket)
+- `frontend/svelte.config.js` — Static adapter, prerender all
+- `frontend/tsconfig.json` — TypeScript configuration
+- `frontend/.npmrc` — npm configuration
+
+**Environment Variables:**
+- `OPENAI_API_KEY` — Optional, for OpenAI backend (can also be entered in UI)
+- `OLLAMA_HOST` — Optional, overridden temporarily by backend for model listing
+- No `.env` files committed or required
 
 **Run Commands:**
 ```bash
-# Run the marimo app (primary)
-uv run marimo run 02-worktrees/demo-marimo-app/app.py
+# Backend
+cd 02-worktrees/webapp-ui
+uv sync
+cd backend
+uv run uvicorn app.main:app --reload --port 8000
 
-# Run marimo in edit mode (development)
-uv run marimo edit 02-worktrees/demo-marimo-app/app.py
+# Frontend (separate terminal)
+cd 02-worktrees/webapp-ui/frontend
+bun install
+bun run dev
 
-# Sync dependencies in a worktree
-uv sync  # from within a worktree directory
-
-# Run Jupyter notebooks (experiments branch)
-uv run jupyter notebook  # from within 02-worktrees/experiments-with-models/
+# Legacy marimo app
+cd 02-worktrees/demo-marimo-app
+uv run marimo run app.py
 ```
+
+## Database
+
+**Engine:** SQLite with WAL mode and foreign keys enabled
+
+**Tables:**
+- `stories` — Top-level container (id, title, premise, active_path as JSON)
+- `nodes` — Paragraph-level story tree nodes (parent_id adjacency list, is_draft flag)
+- `provenance_spans` — Character-level source tracking (start_offset, end_offset, source)
+- `character_mentions` — Character-to-node mapping (extracted from StoryAnalysis.cast)
+- `node_analyses` — Persisted StoryAnalysis JSON per node
+
+**Migrations:** Numbered SQL files in `backend/app/db/migrations/`, executed in order on startup.
 
 ## Platform Requirements
 
 **Development:**
-- macOS (primary development platform, darwin)
-- Python 3.13+ (pinned via `.python-version`)
-- uv package manager (0.9.18+)
-- Ollama installed locally (or LM Studio / llama.cpp as alternatives)
-- At least one local LLM model downloaded (e.g., `gemma3:12b-it-q8_0`, `qwen3:30b-a3b-instruct-2507-q4_K_M`)
-- Git 2.51+ (worktree support required)
+- Python 3.13+
+- uv package manager
+- Node.js 18+ and bun
+- At least one LLM backend running (Ollama, LM Studio, llama.cpp, or OpenAI API key)
+- Git 2.51+ (worktree support)
 
 **Production:**
-- Local-only application. No deployment target, no CI/CD, no hosting.
-- Runs entirely on the developer's machine via `uv run marimo run`
-
-## Repository Structure (Multi-Branch)
-
-**Branch architecture:**
-- `development` - Current main branch (root worktree). Contains template structure, planning docs, dev logs.
-- `master` - Original branch. Template repo structure.
-- `00-experiments` - Base Python environment. All project branches fork from here.
-- `demo-marimo-app` - The main application (marimo-based story writer)
-- `experiments-with-models` - Jupyter notebooks for testing different LLM models
-- `marimo-tests` - Marimo sandbox experiments
-
-**Git remotes:**
-- `origin` → `git@github.com-primary:progressEdd/LAND.E.git`
-- `template` → `git@github.com-primary:progressEdd/project-template.git` (upstream template repo)
+- Local-only application. No deployment target, no CI/CD.
+- Backend: `uvicorn` serves FastAPI on localhost:8000
+- Frontend: SvelteKit static build, served by Vite dev server (localhost:5173) or any static file server
+- Database: SQLite file in `backend/data/`
 
 ---
 
-*Stack analysis: 2026-02-13*
+*Stack analysis: 2026-04-09*

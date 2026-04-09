@@ -2,82 +2,94 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-13)
+See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** Every experiment/feature branch is self-documenting from creation — branching, worktree setup, README population, and project naming happen automatically so you can start building immediately.
-**Current focus:** Phase 4 (Webapp UI) — Plan 02-14 COMPLETE (Character Initials, Remove Cross-Edges). All plans complete.
+**Current focus:** All 4 phases complete. Webapp UI (FastAPI + SvelteKit SPA) fully functional with Tiptap editor, 4-color provenance tracking, WebSocket AI streaming, interactive node graph, and SQLite persistence.
 
 ## Current Position
 
-Phase: 4 of 4 (Webapp UI) — Plan 02-14 COMPLETE
-Plan: 14 in current phase — COMPLETE
-Status: Character supernodes show proper initials, paragraph-to-character cross-edges removed for cleaner graph.
-Last activity: 2026-02-14 — Completed 02-14-PLAN.md (Character Initials, Remove Cross-Edges)
+Phase: 4 of 4 (Webapp UI) — ALL PLANS COMPLETE
+Plan: 16 of 16 in Phase 4 — COMPLETE
+Status: Full-stack story writer webapp operational. Character supernodes with initials, seed-guided generation, theme-aware graph visualization.
+Last activity: 2026-02-14 — Completed 02-16-PLAN.md (Graph polish: enlarged nodes, theme-aware seeds, per-node seed persistence, SVG layering fix)
 
-Progress: [██████████] 100% (14/14 plans in Phase 4)
+Progress: [██████████] 100% (16/16 plans in Phase 4)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 2.0 min
-- Total execution time: 0.3 hours
+- Total plans completed: 20 (1 + 1 + 1 + 16 + 1 direct)
+- Phase 4 execution: ~30 min across 16 plans
+- All v1 requirements delivered: 10/10
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 1. Template Preparation | 1/1 | 1 min | 1 min |
-| 2. Branch Creation Flow | 1/1 | 2 min | 2 min |
-| 3. Root README Index | 1/1 | 1 min | 1 min |
-| 4. Webapp UI | 8/9 | 18 min | 2.3 min |
-
-**Recent Trend:**
-- Last 5 plans: 02-02-webapp (3 min), 02-03-webapp (2 min), 02-04-webapp (3 min), 02-05-webapp (3 min), 02-06-webapp (4 min)
-- Trend: stable
-
-*Updated after each plan completion*
+| Phase | Plans | Status | Completed |
+|-------|-------|--------|-----------|
+| 1. Template Preparation | 1/1 | Complete | 2026-02-13 |
+| 2. Branch Creation Flow | 1/1 | Complete | 2026-02-13 |
+| 3. Root README Index | 1/1 | Complete | 2026-02-13 |
+| 4. Webapp UI | 16/16 | Complete | 2026-02-14 |
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
+Recent decisions affecting current and future work:
 
-- [Roadmap]: 3 phases derived — Template Prep, Branch Creation Flow, Root README Index. Research suggested a 4th phase (Lifecycle Management) but no v1 requirements map to it — deferred to v2.
-- [02-01-webapp]: Used FastAPI lifespan context manager instead of deprecated on_event('startup')
-- [02-01-webapp]: Preserved schema docstrings exactly from marimo app — they serve as LLM system prompts
-- [02-01-webapp]: Used asyncio.to_thread() to wrap synchronous OpenAI SDK calls for async FastAPI
-- [02-02-webapp]: Svelte 5 runes class pattern for state management (ThemeState, SettingsState singletons)
-- [02-02-webapp]: CSS custom properties for theming instead of Tailwind dark: prefix — enables runtime theme switching
-- [02-02-webapp]: Updated root .gitignore to negate lib/ exclusion for frontend/src/lib/
-
-- [02-03-webapp]: Used TypeScript getter properties instead of $derived() for EditorState — cleaner with Tiptap Editor type
-- [02-03-webapp]: Provenance mark renders via inline style attribute — survives copy/paste between applications
-
-- [02-04-webapp]: LLM config stored as module-level variable (single-user app) — no DB persistence needed
-- [02-04-webapp]: Used $effect() for initial story list load on SettingsPanel mount
-- [02-04-webapp]: Svelte 5 event handler: onclick with e.stopPropagation() instead of |stopPropagation modifier
-
-- [02-05-webapp]: run_cycle() returns full result then streams char-by-char with 10ms delay — visual streaming with structured output API
-- [02-05-webapp]: Model name sent in generate WebSocket message from frontend — avoids extra API call
-- [02-05-webapp]: User-typed text provenance via handleTextInput ProseMirror prop — intercepts and wraps with user_written mark
-
-- [02-06-webapp]: Added ProvenanceSpanResponse to backend and included spans in get_story endpoint for content restoration
-- [02-06-webapp]: Used loadedStories cache map in story store to avoid redundant API calls when switching stories
-- [02-06-webapp]: Async setActiveStory() auto-loads full story data if not cached
+- [Roadmap]: 4 phases — Template Prep, Branch Creation, Root README Index, Webapp UI
+- [02-01]: FastAPI lifespan context manager (not deprecated `on_event('startup')`)
+- [02-01]: Preserved schema docstrings as LLM system prompts
+- [02-01]: `asyncio.to_thread()` wraps synchronous OpenAI SDK calls
+- [02-02]: Svelte 5 runes class pattern for state management (ThemeState, SettingsState singletons)
+- [02-02]: CSS custom properties for theming instead of Tailwind dark: prefix
+- [02-03]: TypeScript getter properties for EditorState instead of `$derived()`
+- [02-03]: Provenance mark renders via inline style attribute (survives copy/paste)
+- [02-04]: LLM config as module-level variable (single-user app, no DB persistence)
+- [02-05]: `run_cycle()` returns full result then streams char-by-char with 10ms delay
+- [02-05]: Model name sent in generate WebSocket message from frontend
+- [02-09]: SQLite adjacency list for story tree with `active_path` JSON array
+- [02-10]: d3-hierarchy for SVG tree layout computation
+- [02-15]: Seed-guided generation — clickable seed nodes inject directional hints
+- [02-16]: Per-node seed persistence, theme-aware seed colors, SVG layering fix
 
 ### Pending Todos
 
-None.
+None — all planned work complete.
 
 ### Blockers/Concerns
 
-None.
+None — all phases delivered.
+
+### Potential Next Steps (v2 / unplanned)
+
+- Automated tests (pytest backend, vitest frontend)
+- Error recovery for failed generations (orphaned draft cleanup)
+- Story import from markdown
+- Production build pipeline (static frontend served from FastAPI)
+- Multi-user support (PostgreSQL migration, auth)
+- Linter/formatter setup (ruff, Prettier)
+- Pagination for story/node lists
+- Configurable streaming speed
 
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 02-14-PLAN.md (Character Initials, Remove Cross-Edges). All Phase 4 plans complete.
+Stopped at: Completed 02-16-PLAN.md (Graph polish). All Phase 4 plans complete.
 Resume file: None — all planned work complete
+
+## Worktree Status
+
+Active worktrees:
+- `00-experiments` — Base Python environment
+- `webapp-ui` — Primary application (FastAPI + SvelteKit)
+- `demo-marimo-app` — Legacy marimo prototype
+- `experiments-with-models` — LLM model testing
+- `source` — Exploration notebooks
+- `chinese-prompt` — Chinese prompt experiments
+- `presentation` — Presentation materials
+
+---
+
+*Updated: 2026-04-09*

@@ -1,160 +1,195 @@
 # External Integrations
 
-**Analysis Date:** 2026-02-13
+**Analysis Date:** 2026-04-09
 
 ## APIs & External Services
 
-**LLM Inference (Local-First):**
+### LLM Inference (Local-First)
 
-All LLM backends are accessed via the marimo app at `02-worktrees/demo-marimo-app/app.py`. The app uses a radio button to select the active backend.
+All LLM backends are accessed through the webapp's settings panel. The backend uses a factory pattern to create `openai.OpenAI` clients with different `base_url` values.
 
-- **Ollama** - Primary local LLM backend
-  - SDK/Client: `ollama` Python package (>=0.5.3) for model listing; `openai.OpenAI` client with Ollama's OpenAI-compatible endpoint for chat completions
+- **Ollama** — Primary local LLM backend
+  - SDK/Client: `ollama` Python package (>=0.6.1) for model listing; `openai.OpenAI` client with Ollama's OpenAI-compatible endpoint for chat completions
   - Default host: `http://localhost:11434`
   - Model listing: `ollama.list().model_dump()` (native SDK)
   - Chat: `OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")` (OpenAI-compatible API)
-  - Auth: None (local service, dummy API key `"ollama"` passed to satisfy SDK requirement)
-  - Models tested: `gemma2:9b-instruct-fp16`, `gemma2:27b-instruct-q6_K`, `gemma3:12b-it-q8_0`, `gemma3:27b-it-q4_K_M`, `qwen3:30b-a3b-instruct-2507-q4_K_M`, `gpt-oss:latest`, and others (see `02-worktrees/experiments-with-models/`)
+  - Auth: None (local service, dummy API key `"ollama"`)
 
-- **LM Studio** - Alternative local LLM backend
+- **LM Studio** — Alternative local LLM backend (default)
   - SDK/Client: `openai.OpenAI` with LM Studio's OpenAI-compatible endpoint
-  - Default host: `http://localhost:1234/v1`
+  - Default host: `http://localhost:1234`
   - Auth: Dummy API key `"lm-studio"` (required by SDK, ignored by server)
-  - Configuration: Via marimo UI form in `02-worktrees/demo-marimo-app/app.py`
 
-- **llama.cpp** - Alternative local LLM backend
+- **llama.cpp** — Alternative local LLM backend
   - SDK/Client: `openai.OpenAI` with llama.cpp's OpenAI-compatible endpoint
-  - Default host: `http://localhost:8080/v1`
+  - Default host: `http://localhost:8080`
   - Auth: Dummy API key `"sk-no-key-required"` (required by SDK, ignored by server)
-  - Configuration: Via marimo UI form in `02-worktrees/demo-marimo-app/app.py`
 
-**LLM Inference (Cloud):**
-
-- **OpenAI API** - Cloud LLM backend option
-  - SDK/Client: `openai.OpenAI` (>=1.101.0)
-  - Auth: `OPENAI_API_KEY` environment variable or entered via marimo UI password field
+- **OpenAI** — Cloud LLM backend option
+  - SDK/Client: `openai.OpenAI` (>=2.21.0)
+  - Auth: `OPENAI_API_KEY` environment variable or entered via settings UI
   - Used for: `client.beta.chat.completions.parse()` structured output with Pydantic schemas
-  - Configuration: Via marimo UI form in `02-worktrees/demo-marimo-app/app.py`
-
-- **Azure OpenAI** - Cloud LLM backend option
-  - SDK/Client: `openai.AzureOpenAI` (part of `openai` package)
-  - Auth: `AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_ENDPOINT` environment variables or entered via marimo UI
-  - API version: `2024-08-01-preview` (default, configurable)
-  - Models: User-provided comma-separated deployment names (Azure uses deployment names, not model IDs)
-  - Configuration: Via marimo UI form in `02-worktrees/demo-marimo-app/app.py`
 
 ## Data Storage
 
-**Databases:**
-- None. No database is used. All state is in-memory within the marimo reactive session.
+### SQLite Database
 
-**File Storage:**
-- Local filesystem only
-- Marimo layout stored as JSON: `02-worktrees/demo-marimo-app/layouts/app.grid.json`
-- Marimo session state: `02-worktrees/demo-marimo-app/__marimo__/session/app.py.json`
-- Experiment notebooks stored as `.ipynb` files on the `experiments-with-models` branch
-- No file upload/download functionality in the app
+- **Engine:** aiosqlite (async SQLite driver)
+- **Location:** `backend/data/stories.db` (auto-created on startup)
+- **Mode:** WAL journal mode, foreign keys enabled
+- **Schema:** 5 tables managed by numbered migration SQL files
+- **Size:** Grows with story count; typically small (KB to low MB)
 
-**Caching:**
-- None. No caching layer. Each LLM call is a fresh HTTP request.
+### File Storage
+
+- SQLite database file in `backend/data/`
+- No file upload/download functionality
+- Markdown export is generated in-memory and sent as HTTP response
+- Frontend static assets in `frontend/static/`
+
+### Caching
+
+- Frontend caches loaded stories in `storyState.loadedStories` Map — avoids redundant API calls when switching stories
+- No server-side caching — each request hits SQLite directly
+- No Redis or external cache layer
 
 ## Authentication & Identity
 
-**Auth Provider:**
-- None. No user authentication. The app is a local single-user tool.
-- LLM API keys are entered at runtime via marimo UI forms or read from environment variables (`OPENAI_API_KEY`, `AZURE_OPENAI_API_KEY`)
+- None. No user authentication. Local single-user application.
+- LLM API keys entered at runtime via settings panel or read from environment variables
 - Local backends (Ollama, LM Studio, llama.cpp) require no authentication
 
 ## Monitoring & Observability
 
-**Error Tracking:**
-- None. Errors are caught in try/except blocks and displayed in the marimo UI as `mo.md()` callouts.
-- Error pattern in `02-worktrees/demo-marimo-app/app.py`:
-  ```python
-  try:
-      _start = parse_structured(...)
-  except Exception as e:
-      set_start_err(f"{type(e).__name__}: {e}")
-      status_ui = mo.md(f"**Error:** `{get_start_err()}`")
-  ```
+### Error Tracking
 
-**Logs:**
-- No logging framework. No `logging` module usage.
-- Model warm-up timing displayed in marimo UI via progress bar.
+- Backend: FastAPI `HTTPException` for REST errors, WebSocket `{type: "error"}` messages for generation failures
+- Frontend: Error states displayed in UI components
+- No error tracking service (Sentry, etc.)
 
-## CI/CD & Deployment
+### Logs
 
-**Hosting:**
-- Local only. No deployment target. Run via `uv run marimo run app.py`.
+- No logging framework configured
+- `uvicorn` outputs access logs to stdout when running
+- No structured logging
 
-**CI Pipeline:**
-- None. No GitHub Actions, no CI configuration files.
+## API Architecture
 
-**Deployment process:**
-- Clone repo, set up worktree, `uv sync`, run marimo. No build step.
+### REST Endpoints
 
-## Environment Configuration
+**Stories (`/api/stories`):**
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/stories` | List all stories (summaries) |
+| POST | `/api/stories` | Create new story with root node |
+| GET | `/api/stories/{id}` | Get story with full node tree |
+| GET | `/api/stories/{id}/tree` | Get recursive tree for graph visualizer |
+| DELETE | `/api/stories/{id}` | Delete story (cascading) |
+| GET | `/api/stories/{id}/export` | Export as markdown file |
+| PATCH | `/api/stories/{id}/active-path` | Switch active branch |
+| POST | `/api/stories/{id}/nodes` | Create new node |
+| PATCH | `/api/stories/{id}/nodes/{nid}` | Update node content + spans |
+| POST | `/api/stories/{id}/nodes/{nid}/accept` | Accept draft node |
+| POST | `/api/stories/{id}/nodes/{nid}/reject` | Reject draft node |
+| GET | `/api/stories/random-premise` | Random story premise from pool |
 
-**Required env vars:**
-- None are strictly required. All API keys can be entered via the marimo UI at runtime.
+**LLM (`/api/llm`):**
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/llm/config` | Get current LLM config |
+| POST | `/api/llm/config` | Set LLM backend config |
+| GET | `/api/llm/models` | List available models |
+| POST | `/api/llm/warmup` | Warm up a model |
 
-**Optional env vars:**
-- `OPENAI_API_KEY` - Used by `openai.OpenAI()` if no key provided in UI
-- `AZURE_OPENAI_API_KEY` - Used by `openai.AzureOpenAI()` if no key provided in UI
-- `AZURE_OPENAI_ENDPOINT` - Used by `openai.AzureOpenAI()` if no endpoint provided in UI
-- `OLLAMA_HOST` - Temporarily set by the app when listing Ollama models (restored after call)
+**Health:**
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/health` | Health check |
 
-**Secrets location:**
-- No `.env` files committed or present locally
-- `00-supporting-files/data/sample.env.file` exists as a reference template (not used at runtime)
-- All secrets entered via marimo UI password fields or read from shell environment
+### WebSocket Endpoint
 
-## Webhooks & Callbacks
+**`/ws/generate`** — AI generation streaming
 
-**Incoming:**
-- None. The app does not expose any HTTP endpoints.
+Message types (client → server):
+- `{type: "generate", story_id, model, node_id?, seed?}` — Start generation
+- `{type: "cancel"}` — Cancel in-progress generation
+- `{type: "accept", node_id, content, provenance_spans}` — Accept draft
+- `{type: "reject", node_id}` — Reject draft
 
-**Outgoing:**
-- None. All external communication is client-initiated HTTP requests to LLM APIs.
+Message types (server → client):
+- `{type: "draft_created", node_id}` — Draft node created in DB
+- `{type: "token", content}` — Single character streamed to editor
+- `{type: "complete", node_id, analysis}` — Generation finished with StoryAnalysis
+- `{type: "cancelled", node_id}` — Generation was cancelled
+- `{type: "accepted", node_id}` — Draft accepted
+- `{type: "rejected", node_id}` — Draft rejected
+- `{type: "error", message}` — Error occurred
+
+### API Documentation
+
+- OpenAPI/Swagger UI: `http://localhost:8000/docs` (auto-generated by FastAPI)
 
 ## Integration Patterns
 
-**Universal Client Pattern:**
-All backends (except Ollama model listing) use the `openai.OpenAI` client with different `base_url` values. This is the key integration pattern in `02-worktrees/demo-marimo-app/app.py`:
+### Universal LLM Client Pattern
+
+All backends use the `openai.OpenAI` client with different `base_url` values:
 
 ```python
-# All local backends use OpenAI SDK with custom base_url
-llm_client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")  # LM Studio
-llm_client = OpenAI(base_url="http://localhost:8080/v1", api_key="sk-no-key-required")  # llama.cpp
-llm_client = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")  # Ollama
-
-# Cloud backends use their own constructors
-llm_client = OpenAI(api_key=api_key)  # OpenAI
-llm_client = AzureOpenAI(api_key=api_key, azure_endpoint=endpoint, api_version=api_version)  # Azure
+# Factory pattern in backend/app/services/llm.py
+def create_llm_client(config: LLMBackendConfig) -> OpenAI:
+    if config.backend == "lmstudio":
+        return OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
+    elif config.backend == "ollama":
+        return OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
+    elif config.backend == "llamacpp":
+        return OpenAI(base_url="http://localhost:8080/v1", api_key="sk-no-key-required")
+    elif config.backend == "openai":
+        return OpenAI(api_key=config.api_key)
 ```
 
-**Structured Output Pattern:**
-All LLM calls go through `parse_structured()` which uses `client.beta.chat.completions.parse()` with Pydantic `BaseModel` schemas as `response_format`. This returns typed, validated objects:
+### Structured Output Pattern
+
+All LLM calls use OpenAI's beta structured output API with Pydantic schemas:
 
 ```python
-parsed = client.beta.chat.completions.parse(
-    model=model,
-    response_format=schema,  # Pydantic BaseModel class
-    messages=messages,
-    temperature=temperature,
-).choices[0].message.parsed
-
+parsed = await asyncio.to_thread(
+    lambda: client.beta.chat.completions.parse(
+        model=model,
+        response_format=schema,  # Pydantic BaseModel class
+        messages=messages,
+        temperature=temperature,
+    ).choices[0].message.parsed
+)
 return schema.model_validate(parsed)
 ```
 
-**Git Submodule:**
-- `01-dev-onboarding` submodule points to `https://github.com/progressEdd/dev-onboarding.git` (master branch)
-- Only exists on the `master`/`development` branches, not on experiment branches
+### Async Wrapping Pattern
 
-**Git Template Remote:**
-- `template` remote points to `git@github.com-primary:progressEdd/project-template.git`
-- Used to pull template repo updates into the project via `git merge template/<branch>`
+The OpenAI SDK is synchronous, so all calls are wrapped in `asyncio.to_thread()` for use with FastAPI's async handlers:
+
+```python
+result = await asyncio.to_thread(synchronous_llm_call, ...)
+```
+
+### Character Streaming Pattern
+
+Generated text is streamed character-by-character with a 10ms delay for visual effect:
+
+```python
+for char in draft_text:
+    if cancel_flag:
+        break
+    accumulated += char
+    await websocket.send_json({"type": "token", "content": char})
+    await asyncio.sleep(0.01)
+```
+
+### Git Submodule
+
+- `01-dev-onboarding` submodule points to `https://github.com/progressEdd/dev-onboarding.git`
+- Only exists on `master`/`development` branches, not on experiment branches
 
 ---
 
-*Integration audit: 2026-02-13*
+*Integration audit: 2026-04-09*
