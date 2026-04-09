@@ -16,6 +16,9 @@ from app.models.schemas import (
     NodeResponse,
     StoryAnalysis,
     StoryCreateRequest,
+    StoryOverviewCharacter,
+    StoryOverviewResponse,
+    StoryOverviewStory,
     StoryResponse,
     SwitchPathRequest,
     TreeNodeResponse,
@@ -197,6 +200,68 @@ async def list_stories():
         )
 
     return [_row_to_story_summary(r) for r in rows]
+
+
+@router.get("/overview", response_model=StoryOverviewResponse)
+async def stories_overview():
+    """Get all stories with aggregated character data for the dashboard graph and cards."""
+    async with get_db() as db:
+        # Fetch all stories ordered by updated_at
+        story_rows = await db.execute_fetchall(
+            "SELECT id, title, premise, created_at, updated_at FROM stories ORDER BY updated_at DESC"
+        )
+
+        # Fetch node counts per story
+        node_count_rows = await db.execute_fetchall(
+            "SELECT story_id, COUNT(*) as node_count FROM nodes GROUP BY story_id"
+        )
+        node_counts = {r["story_id"]: r["node_count"] for r in node_count_rows}
+
+        # Fetch character→story mappings from character_mentions
+        char_rows = await db.execute_fetchall(
+            """SELECT DISTINCT cm.character_name, n.story_id
+               FROM character_mentions cm
+               JOIN nodes n ON cm.node_id = n.id
+               ORDER BY cm.character_name"""
+        )
+
+        # Build character→story mapping
+        char_to_stories: dict[str, list[str]] = {}
+        for cr in char_rows:
+            name = cr["character_name"]
+            sid = cr["story_id"]
+            if name not in char_to_stories:
+                char_to_stories[name] = []
+            if sid not in char_to_stories[name]:
+                char_to_stories[name].append(sid)
+
+        # Build story→character mapping
+        story_chars: dict[str, list[str]] = {r["id"]: [] for r in story_rows}
+        for cr in char_rows:
+            name = cr["character_name"]
+            sid = cr["story_id"]
+            if sid in story_chars and name not in story_chars[sid]:
+                story_chars[sid].append(name)
+
+        stories = [
+            StoryOverviewStory(
+                id=r["id"],
+                title=r["title"],
+                premise=r["premise"],
+                created_at=r["created_at"],
+                updated_at=r["updated_at"],
+                character_names=story_chars.get(r["id"], []),
+                node_count=node_counts.get(r["id"], 0),
+            )
+            for r in story_rows
+        ]
+
+        characters = [
+            StoryOverviewCharacter(name=name, story_ids=sids)
+            for name, sids in sorted(char_to_stories.items())
+        ]
+
+    return StoryOverviewResponse(stories=stories, characters=characters)
 
 
 @router.get("/{story_id}", response_model=StoryResponse)

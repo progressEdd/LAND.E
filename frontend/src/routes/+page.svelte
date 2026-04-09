@@ -8,23 +8,19 @@
 
 	const ACTIVE_STORY_KEY = 'ai-invasion-active-story-id';
 
-	let hasStory = $derived(!!storyState.activeStoryId);
-
 	onMount(async () => {
 		// Connect WebSocket
 		generationState.connect();
 
-		// Load story list
+		// Load story list (needed for both dashboard and restoring active story)
 		await storyState.loadStories();
 
 		// Restore previously active story from localStorage
 		const savedId = localStorage.getItem(ACTIVE_STORY_KEY);
 		if (savedId && storyState.stories.some((s) => s.id === savedId)) {
 			storyState.setActiveStory(savedId);
-		} else if (storyState.stories.length > 0) {
-			// Auto-select first story if no saved selection
-			storyState.setActiveStory(storyState.stories[0].id);
 		}
+		// NOTE: No auto-selection of first story — user lands on dashboard
 	});
 
 	// Persist activeStoryId to localStorage on change
@@ -42,18 +38,18 @@
 	});
 </script>
 
-{#if hasStory}
+{#if storyState.activeStoryId}
 	<div class="editor-pane">
 		<EditorToolbar />
 		<Editor />
 		<GenerationControls />
 	</div>
 {:else}
-	<div class="welcome-state">
+	<!-- Dashboard placeholder — replaced by Dashboard.svelte in Plan 03 -->
+	<div class="dashboard-placeholder">
 		<div class="welcome-content">
 			<h2 class="welcome-title">AI Story Writer</h2>
-			<p class="welcome-text">Create a new story in the Settings panel to get started.</p>
-			<p class="welcome-hint">Use the left sidebar to create stories, configure your LLM backend, and manage your writing.</p>
+			<p class="welcome-text">Loading dashboard...</p>
 		</div>
 	</div>
 {/if}
@@ -67,7 +63,7 @@
 		background-color: var(--panel-bg, #030712);
 	}
 
-	.welcome-state {
+	.dashboard-placeholder {
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -92,13 +88,6 @@
 	.welcome-text {
 		color: var(--text-secondary, #d1d5db);
 		font-size: 15px;
-		margin: 0 0 8px;
-		line-height: 1.5;
-	}
-
-	.welcome-hint {
-		color: var(--text-muted, #9ca3af);
-		font-size: 13px;
 		margin: 0;
 		line-height: 1.5;
 	}

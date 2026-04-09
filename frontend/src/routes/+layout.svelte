@@ -6,20 +6,25 @@
 	import SettingsPanel from '$lib/components/SettingsPanel.svelte';
 	import AnalysisPanel from '$lib/components/AnalysisPanel.svelte';
 	import { themeState } from '$lib/stores/theme.svelte';
+	import { storyState } from '$lib/stores/story.svelte';
 
 	let { children } = $props();
 
 	let leftCollapsed = $state(false);
 	let rightCollapsed = $state(false);
+
+	let isEditing = $derived(!!storyState.activeStoryId);
 </script>
 
 <div class="app-shell" class:dark={themeState.isDark}>
-	<!-- Left Sidebar: Settings -->
-	<Sidebar side="left" title="Settings" bind:collapsed={leftCollapsed}>
-		<SettingsPanel />
-	</Sidebar>
+	{#if isEditing}
+		<!-- Left Sidebar: Settings -->
+		<Sidebar side="left" title="Settings" bind:collapsed={leftCollapsed}>
+			<SettingsPanel />
+		</Sidebar>
+	{/if}
 
-	<!-- Main Content: Split Pane (Editor + Graph) -->
+	<!-- Main Content -->
 	<div class="main-content">
 		<!-- Top Bar -->
 		<div class="top-bar">
@@ -29,27 +34,36 @@
 			</button>
 		</div>
 
-		<!-- Split Pane Area -->
-		<div class="split-area">
-			<Splitpanes theme="custom-theme">
-				<Pane minSize={30} size={60}>
-					<div class="pane-content">
-						{@render children()}
-					</div>
-				</Pane>
-				<Pane minSize={20}>
-					<div class="pane-content">
-						<NodeGraph />
-					</div>
-				</Pane>
-			</Splitpanes>
-		</div>
+		{#if isEditing}
+			<!-- Split Pane Area (Editor + Graph) -->
+			<div class="split-area">
+				<Splitpanes theme="custom-theme">
+					<Pane minSize={30} size={60}>
+						<div class="pane-content">
+							{@render children()}
+						</div>
+					</Pane>
+					<Pane minSize={20}>
+						<div class="pane-content">
+							<NodeGraph />
+						</div>
+					</Pane>
+				</Splitpanes>
+			</div>
+		{:else}
+			<!-- Dashboard: full-width content -->
+			<div class="dashboard-area">
+				{@render children()}
+			</div>
+		{/if}
 	</div>
 
-	<!-- Right Sidebar: Story Analysis -->
-	<Sidebar side="right" title="Story Analysis" bind:collapsed={rightCollapsed}>
-		<AnalysisPanel />
-	</Sidebar>
+	{#if isEditing}
+		<!-- Right Sidebar: Story Analysis -->
+		<Sidebar side="right" title="Story Analysis" bind:collapsed={rightCollapsed}>
+			<AnalysisPanel />
+		</Sidebar>
+	{/if}
 </div>
 
 <style>
@@ -133,6 +147,11 @@
 	.split-area {
 		flex: 1;
 		overflow: hidden;
+	}
+
+	.dashboard-area {
+		flex: 1;
+		overflow: auto;
 	}
 
 	.pane-content {

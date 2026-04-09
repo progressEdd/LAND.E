@@ -117,6 +117,14 @@ class StoryState {
 	}
 
 	/**
+	 * Clear the active story and return to dashboard.
+	 */
+	clearActiveStory(): void {
+		this.activeStoryId = null;
+		this.lastAnalysis = null;
+	}
+
+	/**
 	 * Refresh the active story data from the server (e.g., after accepting a node).
 	 */
 	async refreshActiveStory(): Promise<void> {

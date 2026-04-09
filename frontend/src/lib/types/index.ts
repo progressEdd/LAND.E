@@ -96,3 +96,28 @@ export interface TreeResponse {
 export interface SwitchPathRequest {
 	target_node_id: string;
 }
+
+// ---------- Dashboard overview types ----------
+
+// A story in the overview with aggregated data
+export interface StoryOverviewStory {
+	id: string;
+	title: string;
+	premise: string;
+	created_at: string;
+	updated_at: string;
+	character_names: string[];
+	node_count: number;
+}
+
+// A character appearing across stories
+export interface StoryOverviewCharacter {
+	name: string;
+	story_ids: string[];
+}
+
+// Full overview response for dashboard
+export interface StoryOverviewResponse {
+	stories: StoryOverviewStory[];
+	characters: StoryOverviewCharacter[];
+}

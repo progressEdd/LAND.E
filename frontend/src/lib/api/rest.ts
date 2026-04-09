@@ -4,7 +4,8 @@ import type {
 	LLMConfig,
 	NodeType,
 	ProvenanceSource,
-	TreeResponse
+	TreeResponse,
+	StoryOverviewResponse
 } from '$lib/types';
 
 /**
@@ -50,6 +51,10 @@ class ApiClient {
 
 	async listStories(): Promise<Story[]> {
 		return this.request<Story[]>('/api/stories');
+	}
+
+	async getStoriesOverview(): Promise<StoryOverviewResponse> {
+		return this.request<StoryOverviewResponse>('/api/stories/overview');
 	}
 
 	async getStory(id: string): Promise<Story> {

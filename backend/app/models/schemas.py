@@ -207,3 +207,29 @@ class SwitchPathRequest(BaseModel):
     """Request body for switching the active path to a different branch."""
 
     target_node_id: str
+
+
+# ---------- Dashboard overview models ----------
+
+
+class StoryOverviewStory(BaseModel):
+    """A story in the overview, with aggregated character names and node count."""
+    id: str
+    title: str
+    premise: str
+    created_at: str
+    updated_at: str
+    character_names: list[str] = Field(default_factory=list)
+    node_count: int = 0
+
+
+class StoryOverviewCharacter(BaseModel):
+    """A character appearing across stories, with the story IDs it appears in."""
+    name: str
+    story_ids: list[str] = Field(default_factory=list)
+
+
+class StoryOverviewResponse(BaseModel):
+    """Full overview response for the dashboard graph and cards."""
+    stories: list[StoryOverviewStory] = Field(default_factory=list)
+    characters: list[StoryOverviewCharacter] = Field(default_factory=list)
