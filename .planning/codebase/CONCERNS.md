@@ -1,135 +1,179 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-02-13
+**Analysis Date:** 2026-04-09
 
 ## Tech Debt
 
-**Root worktree on wrong branch:**
-- Issue: The root worktree (repo root) is checked out on `development`, not `master`. The `development` branch is 12 commits ahead of `master` and has no upstream tracking remote configured. The `reorganized-branch` points to the same commit (`c9121f1`) as `development`, suggesting `development` is a rename or continuation of `reorganized-branch` without cleanup.
-- Files: Root `.git/HEAD`, `git config --local`
-- Impact: The root README update workflow (Phase 3 of the GSD roadmap) expects the root to be on `master`. Cross-branch edits require stash/checkout/commit/checkout-back pattern, adding fragility. New contributors cloning the repo will see `master` content, not the current working state. `development` has no remote tracking, so `git push` from the root will fail without explicit `--set-upstream`.
-- Fix approach: Decide whether `development` should merge into `master` and become the new HEAD. Set up remote tracking for `development` (`git push -u origin development`), or fast-forward `master` to `development` and switch the root worktree back to `master`. Remove `reorganized-branch` if it's a duplicate.
+**Root worktree on master but development branch has planning work:**
+- Issue: Root worktree is on `master`. The `development` branch has GSD planning work that hasn't been merged to master. The latest commit on master merges development, but development still has newer commits.
+- Files: Root `.git/HEAD`, git branch history
+- Impact: Planning work may not be fully synchronized between branches. The `.planning/` directory exists on `master` but may be slightly behind `development`.
+- Fix approach: Merge `development` into `master` to synchronize.
 
-**Stale `03-app/` references in README and dev logs:**
-- Issue: `README.md` references `uv run marimo run 03-app/app.py` but `03-app/` was removed from the `development` branch. Dev log `00-dev-log/2025-12-29.md` references `../03-app/head.html`. These are broken paths.
-- Files: `README.md` (line 29), `00-dev-log/2025-12-29.md` (line 121)
-- Impact: Users following the README build instructions will get a file-not-found error. The app code now lives on the `demo-marimo-app` worktree branch, but the README doesn't reflect this.
-- Fix approach: Update `README.md` to point to the correct branch/worktree location. Dev log references are historical and can be left as-is (they document what was true at the time), but add a note that `03-app/` was moved.
+**Backend `pyproject.toml` placeholder description:**
+- Issue: `backend/pyproject.toml` still has `description = "Add your description here"` — the default uv scaffold placeholder.
+- Files: `02-worktrees/webapp-ui/backend/pyproject.toml`
+- Impact: Minor — no functional impact, but signals incomplete setup.
+- Fix approach: Update to a real description.
 
-**Placeholder `pyproject.toml` description:**
-- Issue: The root `pyproject.toml` still has `description = "Add your description here"` — the default uv scaffold placeholder.
-- Files: `pyproject.toml` (line 4)
-- Impact: Minor — no functional impact, but signals an unfinished setup. Anyone inspecting the project metadata sees a placeholder.
-- Fix approach: Update to a real description, e.g., `description = "Local AI story writer experiments using Ollama and Marimo"`.
+**No linter or formatter configured:**
+- Issue: Neither backend (Python) nor frontend (TypeScript/Svelte) has a linter or formatter configured. No ruff, black, ESLint, or Prettie
+- Files: No config files exist (`.flake8`, `ruff.toml`, `.prettierrc`, `.eslintrc`)
+- Impact: Inconsistent code style across files. May accumulate style drift over time.
+- Fix approach: Add ruff for Python (`pyproject.toml [tool.ruff]`) and Prettier + ESLint for frontend.
 
-**Previous codebase docs committed then deleted:**
-- Issue: The `development` branch has 7 codebase analysis files (ARCHITECTURE.md, CONCERNS.md, CONVENTIONS.md, INTEGRATIONS.md, STACK.md, STRUCTURE.md, TESTING.md) in git history at HEAD, but they are staged as deleted in the working tree. These were written for the template repo context, not the current LAND.E project. They are being replaced by this fresh analysis.
-- Files: `.planning/codebase/ARCHITECTURE.md`, `.planning/codebase/CONCERNS.md`, `.planning/codebase/CONVENTIONS.md`, `.planning/codebase/INTEGRATIONS.md`, `.planning/codebase/STACK.md`, `.planning/codebase/STRUCTURE.md`, `.planning/codebase/TESTING.md`
-- Impact: Until the deletions are committed, `git status` shows 7 deleted files as unstaged changes. This creates noise and could cause confusion if someone runs `git checkout .` or `git restore .` — the old template-focused docs would reappear.
-- Fix approach: Commit the deletions alongside the new codebase analysis documents.
+**Module-level LLM config (no persistence):**
+- Issue: LLM backend config stored as `_current_config = LLMBackendConfig()` module-level variable in `routers/llm.py`. Lost on server restart.
+- Files: `backend/app/routers/llm.py` line 12
+- Impact: User must reconfigure LLM backend every time the server restarts. Frontend localStorage partially mitigates this.
+- Fix approach: Persist config to a JSON file or SQLite table, or accept as single-session state.
+
+**All Pydantic schemas in single file:**
+- Issue: `schemas.py` is 209 lines with all Pydantic models (request, response, LLM, graph). As the app grows, this will become unwieldy.
+- Files: `backend/app/models/schemas.py`
+- Impact: Harder to navigate and maintain as schema count grows.
+- Fix approach: Split into `schemas/stories.py`, `schemas/llm.py`, `schemas/graph.py` when needed.
 
 ## Known Bugs
 
-**Prunable `use_case` worktree:**
-- Symptoms: `git worktree list` shows `use_case` as `prunable` with message "gitdir file points to non-existent location". The worktree directory at `02-worktrees/use_case/` is empty (no files, just `.` and `..`).
-- Files: `.git/worktrees/use_case/` (admin directory), `02-worktrees/use_case/` (empty)
-- Trigger: The worktree's `.git` file (which should point back to the main repo's admin directory) is missing or the admin entry's `gitdir` points to a path that no longer exists. Likely caused by manual deletion of the worktree directory without using `git worktree remove`.
-- Workaround: Run `git worktree prune` to clean up the stale admin entry, then `git branch -d use_case` if the branch is no longer needed. The `use_case` branch tracks `template/00-experiments` (not `origin`), suggesting it was created from the template remote and may be obsolete.
+**Prunable `use_case` worktree (may be resolved):**
+- Symptoms: Was previously reported as prunable with empty directory. May have been cleaned up.
+- Files: `02-worktrees/use_case/` (may not exist locally)
+- Fix: `git worktree prune` to clean up stale entries.
 
 **Uninitialized `01-dev-onboarding` submodule:**
-- Symptoms: The `01-dev-onboarding/` directory exists but is empty (no files). `git submodule status` shows a `-` prefix indicating the submodule is not initialized.
+- Symptoms: The `01-dev-onboarding/` directory exists but is empty. Submodule not initialized.
 - Files: `.gitmodules`, `01-dev-onboarding/`
-- Trigger: After cloning, `git submodule init && git submodule update` was never run. The submodule URL in `.gitmodules` uses HTTPS (`https://github.com/progressEdd/dev-onboarding.git`) while the origin remote uses SSH (`git@github.com-primary:...`), which could also cause auth issues during initialization.
-- Workaround: Run `git submodule update --init` if the submodule content is needed. If the submodule is no longer relevant to this project (it was inherited from the template), consider removing it with `git rm 01-dev-onboarding && git config --remove-section submodule.01-dev-onboarding`.
+- Impact: Low — submodule content not needed for active development.
+- Fix approach: Run `git submodule update --init` if needed, or remove the submodule if no longer relevant.
 
 ## Security Considerations
 
 **Mixed SSH/HTTPS remote protocols:**
-- Risk: The `origin` and `template` remotes use different SSH host aliases (`git@github.com-primary:...`) while `.gitmodules` uses HTTPS (`https://github.com/...`). The `template` remote also has a mismatch — `git config` shows `git@github.com-primary:progressEdd/project-template.git` but `.gitmodules` references `https://github.com/progressEdd/dev-onboarding.git`.
+- Risk: `origin` and `template` remotes use SSH (`git@github.com-primary:...`) while `.gitmodules` uses HTTPS (`https://github.com/...`).
 - Files: `.gitmodules`, `.git/config`
-- Current mitigation: The SSH host alias `github.com-primary` is configured in the user's `~/.ssh/config`, which handles key routing. This is a valid multi-account SSH pattern.
-- Recommendations: Ensure `.gitmodules` URL is consistent with the SSH pattern if submodule is kept. If the submodule is removed, this becomes moot.
+- Current mitigation: SSH host alias configured in `~/.ssh/config`.
+- Recommendations: Keep as-is if working. Remove `template` remote if no longer syncing.
 
-**`.DS_Store` not in `.gitignore`:**
-- Risk: macOS `.DS_Store` files contain directory metadata (icon positions, view settings). While not a direct security risk, they can leak directory structure information and are unnecessary tracked files. Currently `.DS_Store` exists in the working tree but is not tracked by git (it is gitignored via the global gitignore or OS-level config, not the repo's `.gitignore`).
-- Files: `.gitignore` (missing `.DS_Store` rule), `.DS_Store` (present in working tree)
-- Current mitigation: The file is currently ignored (verified via `git check-ignore .DS_Store`), likely by a global gitignore. However, this relies on each contributor having the same global config.
-- Recommendations: Add `.DS_Store` and `**/.DS_Store` to the repo's `.gitignore` for explicit, portable exclusion.
+**No `.DS_Store` in `.gitignore`:**
+- Risk: macOS `.DS_Store` files may be accidentally committed.
+- Files: `.gitignore` (missing explicit rule)
+- Current mitigation: Likely handled by global gitignore.
+- Recommendations: Add `.DS_Store` and `**/.DS_Store` to repo `.gitignore`.
 
-**`sample.env.file` in tracked supporting files:**
-- Risk: A file at `00-supporting-files/data/sample.env.file` is tracked in git. If it contains actual secrets or API keys (even as examples), they are committed to history.
+**`sample.env.file` in tracked files:**
+- Risk: If it contains real API keys, they'd be in git history.
 - Files: `00-supporting-files/data/sample.env.file`
-- Current mitigation: The `.gitignore` excludes `.env` but `sample.env.file` does not match that pattern, so it is tracked. This is likely intentional (a template showing env var structure), but the contents should be verified to contain only placeholder values.
-- Recommendations: Verify the file contains only placeholder/example values. If it contains real keys, remove it from git history with `git filter-repo`.
+- Recommendations: Verify only placeholder values exist.
 
 ## Performance Bottlenecks
 
-**Binary files in git history (no Git LFS):**
-- Problem: The repository tracks 16MB of images and a 10MB MP4 video file directly in git objects. Every clone downloads all of this, even if the files are never needed.
-- Files: `00-supporting-files/images/README/novelai-killer-demo.mp4` (10.4MB), `00-supporting-files/images/` (16MB total), various `.ipynb` files on worktree branches (~1MB each with embedded outputs)
-- Cause: Binary files are committed directly to git without Git LFS. The MP4 alone is 10.4MB and will remain in the object store forever, even if deleted from HEAD.
-- Improvement path: For a personal project, 15MB of git objects is tolerable. If the repo grows with more screenshots/demos, consider: (1) enabling Git LFS for `*.mp4`, `*.png` patterns, (2) using external hosting (GitHub releases, S3) for demo videos, (3) compressing screenshots before committing.
+**Character-by-character WebSocket streaming with 10ms delay:**
+- Problem: Each character of AI-generated text is sent as a separate WebSocket message with a 10ms sleep. A 150-word paragraph (~750 chars) takes ~7.5 seconds just for streaming delay.
+- Files: `backend/app/routers/ws.py` lines ~165-170
+- Cause: Intentional — provides a visual "typing" effect in the editor.
+- Improvement path: Configurable streaming speed, or batch characters (2-3 at a time).
+
+**Synchronous OpenAI SDK wrapped in asyncio.to_thread():**
+- Problem: Each LLM call occupies a thread from the default thread pool. Multiple concurrent generations would exhaust the pool.
+- Files: `backend/app/services/llm.py`
+- Cause: OpenAI Python SDK is synchronous; `asyncio.to_thread()` is the standard async wrapper.
+- Improvement path: Acceptable for single-user app. For multi-user, consider `asyncio.Semaphore` to limit concurrent LLM calls.
+
+**No database connection pooling:**
+- Problem: Each request opens a new SQLite connection via `get_db()`. No connection reuse.
+- Files: `backend/app/models/database.py`
+- Cause: aiosqlite doesn't natively pool connections; simple app doesn't need it yet.
+- Improvement path: Add connection pooling if request volume increases.
+
+**Binary files in git history:**
+- Problem: 16MB+ of images and videos tracked directly in git without LFS.
+- Files: `00-supporting-files/images/` (README demos, screenshots)
+- Improvement path: Current size is manageable. Consider Git LFS if media grows.
 
 ## Fragile Areas
 
-**Cross-branch root README updates (Phase 3 workflow):**
-- Files: `README.md` (on `master` branch), `.planning/STATE.md`
-- Why fragile: Updating the root README requires the root worktree to be on `master`. The current root worktree is on `development`. The Phase 3 workflow used a stash/checkout/edit/commit/checkout-back pattern, which can fail if there are uncommitted changes, merge conflicts, or if the user interrupts the process mid-way.
-- Safe modification: Always verify current branch with `git branch --show-current` before attempting cross-branch edits. Use `git stash push -m "cross-branch-edit"` with named stashes to avoid the shared-stash confusion documented in `.planning/research/PITFALLS.md`.
-- Test coverage: No automated tests exist. The workflow was verified manually during Phase 3 execution.
+**WebSocket state management in ws.py:**
+- Files: `backend/app/routers/ws.py`
+- Why fragile: Single `cancel_flag` boolean and `current_draft_id` tracked per connection. Race conditions possible if messages arrive during generation. No explicit state machine.
+- Safe modification: Add explicit state enum (IDLE, GENERATING, STREAMING) with transitions.
 
-**Worktree admin directory naming inconsistency:**
-- Files: `.git/worktrees/` (admin directory)
-- Why fragile: As documented in `.planning/research/PITFALLS.md`, the admin directory name is derived from the worktree path basename at creation time, not the branch name. The `00-experiments` worktree's admin directory is named `experiments` (from its original creation path). Any automation that assumes admin-dir == branch-name will break.
-- Safe modification: Always use `git worktree list --porcelain` to discover worktree-to-branch mappings. Never derive branch names from directory names.
-- Test coverage: None.
+**Active path JSON stored as TEXT in SQLite:**
+- Files: `backend/app/db/migrations/001_initial.sql` (active_path column)
+- Why fragile: JSON string parsed on every read. No referential integrity between active_path node IDs and actual nodes. If a node is deleted without updating active_path, the path breaks.
+- Safe modification: Always validate active_path entries exist when loading. Consider a junction table instead.
+
+**Story text concatenation for LLM context:**
+- Files: `backend/app/routers/ws.py` (`_build_story_text()`)
+- Why fragile: Concatenates all nodes in active_path with `\n\n` separator. Long stories may exceed LLM context window silently. No truncation or summarization strategy.
+- Safe modification: Add token counting and context window limits.
+
+**Frontend story caching in memory:**
+- Files: `frontend/src/lib/stores/story.svelte.ts`
+- Why fragile: `loadedStories` Map caches full story data. No cache invalidation — stale data possible if backend is modified externally.
+- Safe modification: Add cache TTL or explicit refresh mechanism.
+
+**Cross-branch root README updates:**
+- Files: `README.md` (on master)
+- Why fragile: Requires stash/checkout/edit/commit/checkout-back pattern. Risk of losing uncommitted changes.
+- Safe modification: Always verify current branch before cross-branch edits.
 
 ## Scaling Limits
 
-**Worktree count and disk usage:**
-- Current capacity: 5 active worktrees (00-experiments, demo-marimo-app, experiments-with-models, marimo-tests, use_case). Each worktree with a `.venv` can be 50-200MB.
-- Limit: Git handles many worktrees efficiently (shared object store), but disk space grows linearly. At 20+ worktrees with venvs, expect 1-4GB of disk usage.
-- Scaling path: Use `git worktree remove` to clean up completed experiments. Run `uv cache clean` periodically. The `use_case` worktree is already prunable and should be cleaned up as a precedent.
+**Single-user SQLite database:**
+- Current capacity: Designed for one user. SQLite handles concurrent reads well but concurrent writes are serialized.
+- Limit: Not suitable for multi-user deployment without switching to PostgreSQL.
+- Scaling path: Accept as-is for personal use. If multi-user needed, migrate to PostgreSQL with asyncpg.
 
-**Git object database growth from binary files:**
-- Current capacity: 14.15MB in pack files, 193 loose objects.
-- Limit: Git performance degrades noticeably above ~1GB object stores, especially for operations like `git gc`, `git clone`, and `git fetch`.
-- Scaling path: Current size is fine. Monitor growth if more screenshots/videos are added. Consider Git LFS before the object store exceeds 100MB.
+**Story tree depth and breadth:**
+- Current capacity: No explicit limits on tree depth or number of branches per node.
+- Limit: Deep trees will slow graph rendering (d3-hierarchy recomputation). Wide trees (many branches per node) make the SVG hard to read.
+- Scaling path: Add pagination or virtualization for the graph visualizer. Limit tree breadth in UI.
+
+**No pagination on story/node lists:**
+- Current capacity: `GET /api/stories` returns all stories. `GET /api/stories/{id}` returns all nodes.
+- Limit: Will slow down with hundreds of stories or thousands of nodes.
+- Scaling path: Add pagination parameters (limit, offset) to list endpoints.
 
 ## Dependencies at Risk
 
-**Root `pyproject.toml` dependencies are vestigial:**
-- Risk: The root `pyproject.toml` lists `ipykernel`, `marimo`, `ollama`, and `openai` as dependencies, but the root branch (`development`/`master`) has no application code — all app code lives on worktree branches. These dependencies exist from before the worktree reorganization and serve no purpose on the root branch.
-- Impact: `uv sync` on the root installs unnecessary packages. The `uv.lock` (963 lines) locks dependencies that aren't used here.
-- Migration plan: Either (1) strip the root `pyproject.toml` to minimal dependencies (just what's needed for template management, if anything), or (2) accept the bloat since the root isn't where active development happens. If stripped, the worktree branches inherit their own `pyproject.toml` from `00-experiments` anyway.
+**OpenAI SDK version sensitivity:**
+- Risk: `client.beta.chat.completions.parse()` is a beta API. Future breaking changes possible.
+- Impact: Structured output parsing is core to the application. A breaking change would halt generation.
+- Migration plan: Pin OpenAI SDK version. Watch changelog for beta API changes.
 
-**`template` remote may diverge:**
-- Risk: The `template` remote (`git@github.com-primary:progressEdd/project-template.git`) is a separate repo. Changes to the template repo won't automatically propagate to this repo. The `use_case` branch tracks `template/00-experiments`, not `origin/00-experiments`, creating confusion about which remote is authoritative.
-- Impact: Template updates require manual `git fetch template` and selective merging. The `vibe-coding-gsd` branch was merged from `template` into `development`, suggesting this has already happened at least once.
-- Migration plan: Decide if the template remote is still needed. If this repo has fully diverged from the template, remove the remote: `git remote remove template`. If ongoing sync is desired, document the merge workflow.
+**Tiptap 3 major version:**
+- Risk: Tiptap v3 is a major version. Extension API may change in future minor/patch updates.
+- Impact: Custom provenance mark extension (`provenance.ts`) uses internal ProseMirror APIs.
+- Migration plan: Pin Tiptap version. Test upgrades carefully.
+
+**Svelte 5 runes API stability:**
+- Risk: Svelte 5 runes (`$state`, `$derived`, `$effect`) are relatively new. Breaking changes unlikely but possible.
+- Impact: All frontend state management uses runes.
+- Migration plan: Pin Svelte version. Follow Svelte changelog.
 
 ## Missing Critical Features
 
 **No automated tests:**
-- Problem: Zero test files exist anywhere in the repository. The GSD workflow was validated manually (UAT in `.planning/phases/01-template-preparation/01-UAT.md`), but there are no repeatable automated tests for any functionality.
-- Blocks: Cannot verify that worktree creation, README templating, or pyproject.toml updates work correctly after code changes. Regressions will be discovered manually.
+- Problem: Zero test files exist. No test framework configured for backend or frontend.
+- Blocks: Cannot verify regressions after changes. Manual testing only.
+- Recommendation: Add pytest for backend, vitest for frontend when starting next development cycle.
 
-**No automation scripts exist:**
-- Problem: The GSD workflow (branch creation, file population, root README update) was executed interactively by an AI orchestrator. There are no standalone scripts that encode this workflow. If the GSD system is unavailable, the workflow must be performed entirely manually.
-- Blocks: Workflow reproducibility depends on the AI orchestrator having access to `.planning/` context. A human without GSD cannot easily replicate the automated workflow.
+**No error recovery for failed generations:**
+- Problem: If the backend crashes mid-generation, the draft node remains in the database as `is_draft=1` with empty content. No cleanup mechanism.
+- Blocks: Orphaned draft nodes accumulate over time.
+- Recommendation: Add a startup cleanup that removes empty draft nodes, or a "clear drafts" admin endpoint.
 
-**`development` branch not pushed to origin:**
-- Problem: The `development` branch has no upstream tracking. `git push` will fail. The 12 commits of GSD planning/research work exist only locally.
-- Blocks: No remote backup of the current working branch. A disk failure would lose all `.planning/` work.
+**No story import:**
+- Problem: Stories can be created and exported (markdown) but cannot be imported from external files.
+- Blocks: No way to migrate stories between databases or restore from exports.
+- Recommendation: Add markdown import endpoint.
 
-## Test Coverage Gaps
-
-**Entire codebase is untested:**
-- What's not tested: Everything. No test framework is configured. No test files exist. No CI/CD pipeline exists.
-- Files: All files in the repository
-- Risk: Any changes to the worktree workflow, template system, or project structure could introduce regressions that go undetected. The GSD UAT (`.planning/phases/01-template-preparation/01-UAT.md`) was a one-time manual verification.
-- Priority: Low — this is a personal project template with no application logic on the root branch. The worktree branches may have their own test needs, but the template infrastructure itself is simple enough that manual verification is acceptable for now. If automation scripts are added (see "Missing Critical Features"), tests should accompany them.
+**Frontend not built for production:**
+- Problem: Frontend runs via `bun run dev` (Vite dev server). No production build pipeline configured for serving the SPA.
+- Blocks: Requires both backend and frontend dev servers running separately.
+- Recommendation: Build frontend to static files, serve from FastAPI via `StaticFiles` mount.
 
 ---
 
-*Concerns audit: 2026-02-13*
+*Concerns audit: 2026-04-09*

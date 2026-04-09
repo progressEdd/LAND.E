@@ -1,287 +1,190 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-02-13
+**Analysis Date:** 2026-04-09
 
 ## Test Framework
 
 **Runner:**
-- No test framework is installed or configured
-- No `pytest`, `unittest`, `vitest`, or any test runner in `pyproject.toml` dependencies
-- No test configuration files exist (`pytest.ini`, `pyproject.toml [tool.pytest]`, `conftest.py`, etc.)
-- `.gitignore` includes `.pytest_cache/`, `.hypothesis/`, `htmlcov/`, `coverage.xml` — suggesting pytest is the intended future framework
+- No test framework is installed or configured for either backend or frontend
+- No `pytest`, `vitest`, `jest`, or any test runner
+- No test configuration files exist (`pytest.ini`, `vitest.config.ts`, etc.)
+- `.gitignore` includes `.pytest_cache/`, `.hypothesis/`, `htmlcov/`, `coverage.xml` — suggesting pytest is intended for future use
 
 **Assertion Library:**
 - None configured
-- Research code examples use bare Python `assert` statements for validation
+- Python one-liner validation uses bare `assert` statements
 
 **Run Commands:**
 ```bash
-# No test commands are currently configured
-# When pytest is added:
-uv add --dev pytest           # Install
-uv run pytest                 # Run all tests
-uv run pytest --tb=short      # Run with short tracebacks
-uv run pytest -x              # Stop on first failure
-uv run pytest --cov           # Run with coverage (requires pytest-cov)
+# No test commands currently available
+
+# When pytest is added for backend:
+cd 02-worktrees/webapp-ui/backend
+uv add --dev pytest pytest-asyncio pytest-cov
+uv run pytest
+
+# When vitest is added for frontend:
+cd 02-worktrees/webapp-ui/frontend
+bun add -d vitest @testing-library/svelte
+bun run test
 ```
 
 ## Current Testing Approach
 
-This repository uses **manual verification and UAT (User Acceptance Testing)** instead of automated tests. Testing is document-driven:
+This project uses **manual verification and UAT (User Acceptance Testing)** instead of automated tests.
 
 ### UAT Pattern
 
 **Location:** `.planning/phases/{phase-name}/{phase}-UAT.md`
 
-**Structure (from `01-UAT.md`):**
-```markdown
----
-status: complete
-phase: 01-template-preparation
-source: 01-01-SUMMARY.md
-started: 2026-02-14T00:05:00Z
-updated: 2026-02-14T00:08:00Z
----
-
-## Current Test
-
-[testing complete]
-
-## Tests
-
-### 1. README template exists on 00-experiments
-expected: Running `cat 02-worktrees/00-experiments/README.md` shows a non-empty file...
-result: pass
-
-### 2. Sentinel comment on first line
-expected: The very first line of `02-worktrees/00-experiments/README.md` is exactly...
-result: pass
-
-## Summary
-
-total: 4
-passed: 4
-issues: 0
-pending: 0
-skipped: 0
-
-## Gaps
-
-[none yet]
-```
-
-**Patterns:**
-- Each test has a numbered heading, an `expected:` description, and a `result:` field (`pass`/`fail`)
-- Summary section tracks totals at the end
-- Gaps section documents missing test coverage
-- YAML frontmatter tracks status, phase, source summary, and timestamps
+**Structure:**
+- Each test has a numbered heading, `expected:` description, and `result:` field
+- Summary tracks totals (passed, failed, issues, pending, skipped)
+- Gaps section documents missing coverage
+- YAML frontmatter tracks status, phase, source summary, timestamps
 
 ### Plan-Level Verification
 
-**Location:** Within plan files (e.g., `01-01-PLAN.md`)
+**Location:** Within plan files (`NN-NN-PLAN.md`)
 
 **Structure:**
-```markdown
-<verify>
-1. File exists and is non-empty: `test -s 02-worktrees/00-experiments/README.md && echo "OK"`
-2. Sentinel present: `grep -c 'TEMPLATE: REPLACE ME' 02-worktrees/00-experiments/README.md`
-3. All placeholders present: `grep -c '\$project_name\|\$description\|\$branch_name\|\$created_date'...`
-4. Committed: `git -C 02-worktrees/00-experiments log -1 --oneline`
-5. No `${...}` syntax used: `grep -c '\${' 02-worktrees/00-experiments/README.md`
-</verify>
-```
+- `<verify>` blocks contain shell one-liners for post-execution validation
+- Shell commands: `test -s`, `grep -c`, `git status --porcelain`
+- Python one-liners: `python3 -c "..."` with `assert` statements
+- Each step checks one specific condition with clear pass/fail outcome
 
-**Patterns:**
-- Verification steps use shell one-liners that can be copy-pasted and run
-- Each step checks one specific condition with a clear pass/fail outcome
-- Verification is embedded in the plan, not in a separate test file
+### Manual Webapp Testing
 
-### Python One-Liner Validation
-
-**Pattern (from plan files):**
-```python
-python3 -c "
-from string import Template
-content = open('02-worktrees/00-experiments/README.md').read()
-t = Template(content)
-result = t.safe_substitute(
-    project_name='Test Project',
-    description='A test',
-    branch_name='test-branch',
-    created_date='2026-01-01'
-)
-assert '\$project_name' not in result, 'project_name not substituted'
-assert '\$description' not in result, 'description not substituted'
-print('All placeholders substitute correctly')
-"
-```
-
-**Usage:**
-- Inline Python scripts run via `python3 -c "..."` for quick validation
-- Uses bare `assert` statements with descriptive failure messages
-- Tests real file contents, not mocked data
-- Validates cross-file consistency (e.g., pyproject.toml `readme` field resolves to an actual file)
+The webapp (webapp-ui) was tested manually during development:
+- Backend API verified via Swagger UI (`http://localhost:8000/docs`)
+- Frontend verified by visual inspection in browser
+- LLM generation tested with each backend (Ollama, LM Studio, OpenAI, llama.cpp)
+- Graph visualizer verified with screenshots in plan summaries
 
 ## Test File Organization
 
-**Location:**
-- No dedicated test directory exists (`tests/`, `test/`, etc.)
-- UAT documents live alongside plan documents in `.planning/phases/{phase}/`
-- Verification logic is embedded in plan files, not extracted into test modules
-
-**Naming:**
-- UAT files: `{phase-number}-UAT.md`
-- No `test_*.py`, `*_test.py`, or `*.spec.*` files exist anywhere in the repository
-
-## Mocking
-
-**Framework:** None
-
-**Current approach:**
-- All verification runs against real files in real git worktrees
-- No mocking, stubbing, or test doubles are used
-- Tests validate actual git state (`git log`, `git status`) and file contents
-
-## Fixtures and Factories
-
-**Test Data:**
-- No fixtures directory or factory pattern exists
-- `00-supporting-files/data/sample.env.file` serves as a reference environment file (not a test fixture)
-- Plan verification uses hardcoded test values inline:
-  ```python
-  t.safe_substitute(
-      project_name='Test Project',
-      description='A test',
-      branch_name='test-branch',
-      created_date='2026-01-01'
-  )
-  ```
-
-## Coverage
-
-**Requirements:** None enforced
-
 **Current state:**
-- No coverage tool is configured
-- No coverage thresholds or requirements exist
-- `.gitignore` includes coverage-related entries (`htmlcov/`, `.coverage`, `coverage.xml`) for when coverage is eventually added
+- No test directory exists
+- No `test_*.py`, `*.test.ts`, `*.spec.ts` files
+- UAT documents in `.planning/phases/`
+- Verification logic embedded in plan files
 
-## Test Types
+## What Needs Testing
 
-**Unit Tests:**
-- None exist. No Python source files on the master branch to unit test.
-- Experiment branches may contain their own tests, but each branch is independent.
+### Backend (Priority Areas)
 
-**Integration Tests:**
-- None exist as automated tests.
-- UAT documents serve as manual integration test scripts — they verify end-to-end outcomes (file created + content correct + git state clean).
+**LLM Service (high priority):**
+- `create_llm_client()` — Verify correct client config for each backend
+- `parse_structured()` — Verify structured output parsing with mock responses
+- `list_models()` — Verify model listing for each backend
+- `_normalize_base_url()` — URL normalization edge cases
 
-**E2E Tests:**
-- Not applicable for a template/workflow repository.
-- The UAT process is effectively E2E: it validates the full workflow outcome from plan execution through file creation to git commit.
+**Story Service (high priority):**
+- `run_cycle()` — Verify generation pipeline with mocked LLM client
+- `extract_characters()` — Verify character name/role extraction from cast strings
 
-**Validation Scripts:**
-- Python one-liners embedded in plan files serve as lightweight smoke tests
-- Shell commands (`test -s`, `grep -c`, `git status --porcelain`) validate postconditions
+**Story Router (medium priority):**
+- CRUD operations (create, read, update, delete stories and nodes)
+- Active path management (switch branches, path reconstruction)
+- Tree endpoint (recursive tree building)
+- Export endpoint (markdown generation)
+- Edge cases: empty active_path, missing nodes, circular references
 
-## Recommended Testing Setup (When Adding Tests)
+**WebSocket Handler (medium priority):**
+- Generation flow (draft creation → streaming → completion)
+- Cancel flow
+- Accept/reject flow
+- Error handling (missing story, no backend configured)
 
-When Python source files are introduced on experiment branches, use this setup:
+**Database (low priority):**
+- Migration execution (idempotency)
+- Cascade deletes (deleting story removes nodes + spans)
+- Connection management (cleanup on error)
 
-**Install:**
+### Frontend (Priority Areas)
+
+**Stores (medium priority):**
+- `storyState` — CRUD operations, caching, active story management
+- `generationState` — WebSocket connection lifecycle, state transitions
+- `themeState` — Theme persistence and switching
+
+**API Clients (medium priority):**
+- REST client — Error handling, response parsing
+- WebSocket client — Connection, reconnection, message parsing
+
+**Components (low priority):**
+- `NodeGraph` — Tree rendering, node interaction, path switching
+- `Editor` — Tiptap initialization, provenance mark rendering
+- `SettingsPanel` — Config form submission
+
+## Recommended Testing Setup
+
+### Backend (pytest)
+
 ```bash
-uv add --dev pytest pytest-cov
-```
-
-**Configure in `pyproject.toml`:**
-```toml
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = "-v --tb=short"
-
-[tool.coverage.run]
-source = ["src"]
-omit = ["tests/*"]
-
-[tool.coverage.report]
-show_missing = true
-fail_under = 80
+cd 02-worktrees/webapp-ui/backend
+uv add --dev pytest pytest-asyncio pytest-cov httpx
 ```
 
 **Directory structure:**
 ```
-project-root/
-├── src/           # Source code (if using src layout)
-│   └── ...
-├── tests/         # Test files
-│   ├── conftest.py
-│   ├── test_*.py
-│   └── ...
-├── pyproject.toml
-└── ...
+backend/
+├── tests/
+│   ├── conftest.py           # Shared fixtures (test DB, mock clients)
+│   ├── test_schemas.py       # Pydantic model validation
+│   ├── test_services/
+│   │   ├── test_llm.py       # LLM client factory, structured output
+│   │   ├── test_story.py     # Generation pipeline, character extraction
+│   │   └── test_export.py    # Markdown export
+│   ├── test_routers/
+│   │   ├── test_stories.py   # Story/node CRUD endpoints
+│   │   ├── test_llm.py       # LLM config endpoints
+│   │   └── test_ws.py        # WebSocket handler
+│   └── test_database.py      # Migration, connection management
+├── pyproject.toml            # [tool.pytest.ini_options] config
+└── app/
 ```
 
-**Test pattern:**
-```python
-# tests/test_example.py
-import pytest
+**Key fixtures needed:**
+- In-memory SQLite database (`aiosqlite.connect(":memory:")`)
+- Mock OpenAI client (returns canned structured responses)
+- Test client for FastAPI (`httpx.AsyncClient` with ASGI transport)
 
-def test_something():
-    """Describe what this test validates."""
-    result = function_under_test()
-    assert result == expected_value
+### Frontend (vitest)
 
-class TestGroupName:
-    """Group related tests."""
-
-    def test_case_one(self):
-        assert True
-
-    def test_edge_case(self):
-        with pytest.raises(ValueError, match="expected message"):
-            function_that_raises()
-```
-
-**Async testing (for LLM client code):**
-```python
-import pytest
-
-@pytest.mark.asyncio
-async def test_async_operation():
-    result = await async_function()
-    assert result is not None
-```
-
-## Common Verification Patterns
-
-**File existence and content:**
 ```bash
-test -s path/to/file && echo "OK"              # File exists and is non-empty
-grep -c 'expected pattern' path/to/file         # Pattern appears N times
-head -1 path/to/file                            # Check first line content
+cd 02-worktrees/webapp-ui/frontend
+bun add -d vitest @testing-library/svelte jsdom
 ```
 
-**Git state validation:**
-```bash
-git -C <worktree> status --porcelain            # Should be empty (clean)
-git -C <worktree> log -1 --oneline              # Verify last commit
-git worktree list --porcelain                   # Verify worktree state
+**Directory structure:**
+```
+frontend/
+├── tests/
+│   ├── stores/
+│   │   ├── story.test.ts
+│   │   ├── generation.test.ts
+│   │   └── theme.test.ts
+│   ├── api/
+│   │   ├── rest.test.ts
+│   │   └── ws.test.ts
+│   └── components/
+│       ├── Editor.test.ts
+│       └── NodeGraph.test.ts
+├── vitest.config.ts
+└── src/
 ```
 
-**Python validation:**
-```bash
-python3 -c "
-import tomllib
-with open('path/to/pyproject.toml', 'rb') as f:
-    data = tomllib.load(f)
-assert data['project']['name'] == 'expected-name'
-print('OK')
-"
-```
+## Coverage
+
+**Current:** 0% — No automated tests exist.
+
+**Recommended minimum coverage when tests are added:**
+- Backend services: 80%+ (LLM, story, export)
+- Backend routers: 70%+ (API endpoint behavior)
+- Frontend stores: 80%+ (state management)
+- Frontend components: 50%+ (key interactions)
 
 ---
 
-*Testing analysis: 2026-02-13*
+*Testing analysis: 2026-04-09*
