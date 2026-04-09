@@ -82,10 +82,10 @@
 			<h2 class="empty-title">Welcome to AI Story Writer</h2>
 			<p class="empty-text">Create your first story to get started.</p>
 			<div class="empty-actions">
-				<button class="btn btn-primary" onclick={() => (showCreateForm = true)}>
+				<button class="btn btn-primary" onclick={() => (showCreateForm = true)} title="Start writing a new story with a title and premise">
 					Create Your First Story
 				</button>
-				<button class="btn btn-lucky" onclick={feelingLucky} disabled={isLoadingPremise}>
+				<button class="btn btn-lucky" onclick={feelingLucky} disabled={isLoadingPremise} title="Generate a random story premise automatically">
 					{isLoadingPremise ? 'Rolling...' : "I'm Feeling Lucky"}
 				</button>
 			</div>
@@ -97,10 +97,10 @@
 				<h2 class="dashboard-title">Your Stories</h2>
 				<div class="header-actions">
 					{#if !showCreateForm}
-						<button class="btn btn-primary btn-small" onclick={() => (showCreateForm = true)}>
+						<button class="btn btn-primary btn-small" onclick={() => (showCreateForm = true)} title="Start writing a new story with a title and premise">
 							+ New Story
 						</button>
-						<button class="btn btn-lucky-inline" onclick={feelingLucky} disabled={isLoadingPremise}>
+						<button class="btn btn-lucky-inline" onclick={feelingLucky} disabled={isLoadingPremise} title="Generate a random story premise automatically">
 							{isLoadingPremise ? '...' : '\uD83C\uDFB0'}
 						</button>
 					{/if}
@@ -122,7 +122,7 @@
 						rows="3"
 					></textarea>
 					<div class="create-actions">
-						<button class="btn btn-lucky btn-small" onclick={feelingLucky} disabled={isLoadingPremise}>
+						<button class="btn btn-lucky btn-small" onclick={feelingLucky} disabled={isLoadingPremise} title="Generate a random story premise automatically">
 							{isLoadingPremise ? 'Rolling...' : "I'm Feeling Lucky"}
 						</button>
 						<div class="create-submit">

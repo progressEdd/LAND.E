@@ -142,12 +142,7 @@
 		return n ? { x: n.x, y: n.y } : { x: 0, y: 0 };
 	}
 
-	function handleNodeClick(node: GraphNode): void {
-		if (node.type === 'story') {
-			storyState.setActiveStory(node.id);
-		}
-		// Character nodes don't navigate anywhere
-	}
+
 
 	// ---- Zoom & Pan state ----
 	let scale = $state(1);
@@ -183,26 +178,41 @@
 		panY = my - gyBefore * newScale;
 	}
 
+	let didDrag = $state(false);
+
 	function handlePointerDown(e: PointerEvent): void {
 		if (e.button === 0) {
 			isPanning = true;
+			didDrag = false;
 			panStartX = e.clientX;
 			panStartY = e.clientY;
 			panStartPanX = panX;
 			panStartPanY = panY;
 			(e.currentTarget as HTMLElement)?.setPointerCapture(e.pointerId);
-			e.preventDefault();
 		}
 	}
 
 	function handlePointerMove(e: PointerEvent): void {
 		if (!isPanning) return;
-		panX = panStartPanX + (e.clientX - panStartX);
-		panY = panStartPanY + (e.clientY - panStartY);
+		const dx = e.clientX - panStartX;
+		const dy = e.clientY - panStartY;
+		if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+			didDrag = true;
+		}
+		panX = panStartPanX + dx;
+		panY = panStartPanY + dy;
 	}
 
 	function handlePointerUp(): void {
 		isPanning = false;
+	}
+
+	function handleNodeClick(node: GraphNode): void {
+		if (didDrag) return; // Was a drag, not a click
+		if (node.type === 'story') {
+			storyState.setActiveStory(node.id);
+		}
+		// Character nodes don't navigate anywhere
 	}
 
 	function resetView(): void {
@@ -238,7 +248,7 @@
 			onpointerleave={handlePointerUp}
 			class:viewport-panning={isPanning}
 		>
-			<svg class="graph-svg" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet">
+			<svg class="graph-svg" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
 				<g transform="translate({panX}, {panY}) scale({scale})">
 			<!-- Links -->
 			{#each links as l, i}
@@ -264,8 +274,8 @@
 				>
 					{#if n.type === 'story'}
 						<rect
-							x={n.x - 40} y={n.y - 16}
-							width="80" height="32"
+							x={n.x - 50} y={n.y - 18}
+							width="100" height="36"
 							rx="6"
 							class="story-rect"
 						/>
@@ -275,8 +285,19 @@
 							text-anchor="middle"
 							dominant-baseline="middle"
 						>
-							{n.label.length > 12 ? n.label.slice(0, 11) + '\u2026' : n.label}
+							{n.label.length > 14 ? n.label.slice(0, 13) + '\u2026' : n.label}
 						</text>
+						<!-- Full title on hover -->
+						{#if hoveredNode === n.id && n.label.length > 14}
+							<text
+								x={n.x} y={n.y + 32}
+								class="char-hover-name"
+								text-anchor="middle"
+								dominant-baseline="hanging"
+							>
+								{n.label.length > 20 ? n.label.slice(0, 19) + '\u2026' : n.label}
+							</text>
+						{/if}
 					{:else}
 						{@const charIdx = nodes.filter((nn) => nn.type === 'character').indexOf(n)}
 						<circle
