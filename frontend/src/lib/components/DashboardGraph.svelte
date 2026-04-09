@@ -101,10 +101,10 @@
 
 		// Run force simulation
 		const simulation = forceSimulation<SimNode>(graphNodes as any)
-			.force('link', forceLink<SimNode, SimLink>(graphLinks as any).id((d: any) => d.id).distance(80))
-			.force('charge', forceManyBody().strength(-200))
+			.force('link', forceLink<SimNode, SimLink>(graphLinks as any).id((d: any) => d.id).distance(100))
+			.force('charge', forceManyBody().strength(-250))
 			.force('center', forceCenter(300, 150))
-			.force('collide', forceCollide<SimNode>().radius(40) as any)
+			.force('collide', forceCollide<SimNode>().radius(60) as any)
 			.stop();
 
 		// Run simulation synchronously for 120 ticks (no animation needed)
@@ -255,7 +255,7 @@
 			onpointerleave={handlePointerUp}
 			class:viewport-panning={isPanning}
 		>
-			<svg class="graph-svg" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+			<svg class="graph-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
 				<g transform="translate({panX}, {panY}) scale({scale})">
 			<!-- Links -->
 			{#each links as l, i}
@@ -280,31 +280,11 @@
 					onmouseleave={() => (hoveredNode = null)}
 				>
 					{#if n.type === 'story'}
-						<rect
-							x={n.x - 50} y={n.y - 18}
-							width="100" height="36"
-							rx="6"
-							class="story-rect"
-						/>
-						<text
-							x={n.x} y={n.y + 1}
-							class="node-label story-label"
-							text-anchor="middle"
-							dominant-baseline="middle"
-						>
-							{n.label.length > 14 ? n.label.slice(0, 13) + '\u2026' : n.label}
-						</text>
-						<!-- Full title on hover -->
-						{#if hoveredNode === n.id && n.label.length > 14}
-							<text
-								x={n.x} y={n.y + 32}
-								class="char-hover-name"
-								text-anchor="middle"
-								dominant-baseline="hanging"
-							>
-								{n.label.length > 20 ? n.label.slice(0, 19) + '\u2026' : n.label}
-							</text>
-						{/if}
+						<foreignObject x={n.x - 90} y={n.y - 32} width="180" height="64">
+							<div class="story-node-card" title={n.label}>
+								<span class="story-node-title">{n.label.length > 22 ? n.label.slice(0, 21) + '\u2026' : n.label}</span>
+							</div>
+						</foreignObject>
 					{:else}
 						{@const charIdx = nodes.filter((nn) => nn.type === 'character').indexOf(n)}
 						<circle
@@ -419,16 +399,33 @@
 		transition: opacity 150ms ease;
 	}
 
-	.story-rect {
-		fill: var(--hover-bg, #1f2937);
-		stroke: var(--border-color, #374151);
-		stroke-width: 1.5;
-		transition: fill 150ms ease, stroke 150ms ease;
+	.story-node-card {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 100%;
+		padding: 6px 10px;
+		background-color: var(--hover-bg, #1f2937);
+		border: 1px solid var(--border-color, #374151);
+		border-radius: 6px;
+		transition: background-color 150ms ease, border-color 150ms ease;
+		box-sizing: border-box;
+		overflow: hidden;
 	}
 
-	.graph-node:hover .story-rect {
-		fill: #374151;
-		stroke: #6366f1;
+	.graph-node:hover .story-node-card {
+		background-color: #374151;
+		border-color: #6366f1;
+	}
+
+	.story-node-title {
+		font-size: 11px;
+		font-weight: 600;
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+		color: var(--text-primary, #e5e7eb);
+		text-align: center;
+		line-height: 1.3;
+		word-break: break-word;
 	}
 
 	.char-rect {
@@ -447,10 +444,6 @@
 		font-weight: 600;
 		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 		pointer-events: none;
-	}
-
-	.story-label {
-		fill: var(--text-primary, #e5e7eb);
 	}
 
 	.char-graph-label {
