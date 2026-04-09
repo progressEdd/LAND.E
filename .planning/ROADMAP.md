@@ -86,7 +86,7 @@ Plans:
 
 ### Phase 03: Dashboard + Graph Rework
 **Goal**: Replace the welcome placeholder with a story dashboard home page, and rework the node graph visualizer to draw edges from character nodes to the paragraphs where they appear.
-**Status**: In Progress
+**Status**: Complete (2026-04-09)
 **Folder**: `.planning/phases/03-dashboard-graph-rework/`
 **Depends on**: Phase 01 (Webapp UI must be functional)
 **Branch**: `webapp-ui` (existing)
@@ -97,7 +97,15 @@ Plans:
   3. Node graph visualizer draws edges from character supernodes to the paragraph nodes where they are mentioned
   4. Graph edges are visually clear and don't clutter the tree layout
   5. Both features work in dark and light themes
-**Plans:** TBD after context gathering
+**Plans:** 6 plans (6 complete)
+
+Plans:
+- [x] 03-01-PLAN.md — Backend stories overview endpoint: Pydantic models, GET /api/stories/overview, TypeScript types
+- [x] 03-02-PLAN.md — Story store clearActiveStory, +page.svelte dashboard/editor routing, +layout.svelte conditional sidebars
+- [x] 03-03-PLAN.md — Dashboard home page: StoryCard component, Dashboard with grid/create/empty states, I'm Feeling Lucky
+- [x] 03-04-PLAN.md — Navigation: home button in toolbar, breadcrumb in top bar, SettingsPanel story removal
+- [x] 03-05-PLAN.md — Character→paragraph edges: hover-activated dashed color-coded lines in NodeGraph
+- [x] 03-06-PLAN.md — Dashboard story-level graph: d3-force force-directed layout with stories and characters
 
 ## Progress
 
@@ -109,4 +117,4 @@ Phases execute: 00 → 01 → 03 → 02 (Phase 03 before 02 because in-story edg
 | 00. Infrastructure | `00-infrastructure` | 1+ | Complete | 2026-02-13 |
 | 01. Webapp UI | `01-webapp-ui` | 16/16 | Complete | 2026-02-14 |
 | 02. Cross-Story Graph | `02-cross-story-graph` | 0/? | Planned | — |
-| 03. Dashboard + Graph Rework | `03-dashboard-graph-rework` | 0/? | Complete | — |
+| 03. Dashboard + Graph Rework | `03-dashboard-graph-rework` | 6/6 | Complete | 2026-04-09 |
