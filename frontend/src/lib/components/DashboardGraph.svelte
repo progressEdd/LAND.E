@@ -149,6 +149,68 @@
 		// Character nodes don't navigate anywhere
 	}
 
+	// ---- Zoom & Pan state ----
+	let scale = $state(1);
+	let panX = $state(0);
+	let panY = $state(0);
+	let isPanning = $state(false);
+	let panStartX = $state(0);
+	let panStartY = $state(0);
+	let panStartPanX = $state(0);
+	let panStartPanY = $state(0);
+	let graphEl = $state<HTMLDivElement | null>(null);
+
+	const MIN_SCALE = 0.3;
+	const MAX_SCALE = 3;
+	const ZOOM_FACTOR = 0.001;
+
+	function handleWheel(e: WheelEvent): void {
+		e.preventDefault();
+		const rect = graphEl?.getBoundingClientRect();
+		if (!rect) return;
+
+		const mx = e.clientX - rect.left;
+		const my = e.clientY - rect.top;
+
+		const gxBefore = (mx - panX) / scale;
+		const gyBefore = (my - panY) / scale;
+
+		const delta = -e.deltaY * ZOOM_FACTOR;
+		const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * (1 + delta)));
+		scale = newScale;
+
+		panX = mx - gxBefore * newScale;
+		panY = my - gyBefore * newScale;
+	}
+
+	function handlePointerDown(e: PointerEvent): void {
+		if (e.button === 0) {
+			isPanning = true;
+			panStartX = e.clientX;
+			panStartY = e.clientY;
+			panStartPanX = panX;
+			panStartPanY = panY;
+			(e.currentTarget as HTMLElement)?.setPointerCapture(e.pointerId);
+			e.preventDefault();
+		}
+	}
+
+	function handlePointerMove(e: PointerEvent): void {
+		if (!isPanning) return;
+		panX = panStartPanX + (e.clientX - panStartX);
+		panY = panStartPanY + (e.clientY - panStartY);
+	}
+
+	function handlePointerUp(): void {
+		isPanning = false;
+	}
+
+	function resetView(): void {
+		scale = 1;
+		panX = 0;
+		panY = 0;
+	}
+
 	// Load on mount
 	onMount(() => {
 		loadGraph();
@@ -165,7 +227,19 @@
 		<!-- No graph when no stories exist (D-13) -->
 	{:else}
 		<h4 class="graph-title">Story Universe</h4>
-		<svg class="graph-svg" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet">
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="graph-viewport"
+			bind:this={graphEl}
+			onwheel={handleWheel}
+			onpointerdown={handlePointerDown}
+			onpointermove={handlePointerMove}
+			onpointerup={handlePointerUp}
+			onpointerleave={handlePointerUp}
+			class:viewport-panning={isPanning}
+		>
+			<svg class="graph-svg" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet">
+				<g transform="translate({panX}, {panY}) scale({scale})">
 			<!-- Links -->
 			{#each links as l, i}
 				{@const sourcePos = getNodePos(typeof l.source === 'string' ? l.source : (l.source as GraphNode).id)}
@@ -232,7 +306,17 @@
 					{/if}
 				</g>
 			{/each}
-		</svg>
+				</g>
+			</svg>
+
+			<!-- Zoom controls -->
+			<div class="zoom-controls">
+				<button class="zoom-btn" onclick={() => { scale = Math.min(MAX_SCALE, scale * 1.25); }} title="Zoom in">+</button>
+				<button class="zoom-btn" onclick={() => { scale = Math.max(MIN_SCALE, scale * 0.8); }} title="Zoom out">&minus;</button>
+				<button class="zoom-btn zoom-reset" onclick={resetView} title="Reset view">1:1</button>
+				<span class="zoom-level">{Math.round(scale * 100)}%</span>
+			</div>
+		</div>
 	{/if}
 </div>
 
@@ -257,8 +341,18 @@
 		width: 100%;
 		height: 300px;
 		background-color: var(--sidebar-bg, #111827);
+	}
+
+	.graph-viewport {
+		position: relative;
+		overflow: hidden;
 		border: 1px solid var(--border-color, #374151);
 		border-radius: 8px;
+		cursor: grab;
+	}
+
+	.viewport-panning {
+		cursor: grabbing;
 	}
 
 	.graph-loading {
@@ -343,5 +437,53 @@
 		font-weight: 600;
 		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 		pointer-events: none;
+	}
+
+	/* ---- Zoom controls ---- */
+	.zoom-controls {
+		position: absolute;
+		bottom: 8px;
+		right: 8px;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		z-index: 5;
+	}
+
+	.zoom-btn {
+		width: 26px;
+		height: 26px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--sidebar-bg, #111827);
+		border: 1px solid var(--border-color, #374151);
+		border-radius: 4px;
+		color: var(--text-muted, #9ca3af);
+		font-size: 13px;
+		font-weight: 600;
+		cursor: pointer;
+		padding: 0;
+		line-height: 1;
+	}
+
+	.zoom-btn:hover {
+		background: var(--hover-bg, #1f2937);
+		color: var(--text-primary, #e5e7eb);
+	}
+
+	.zoom-reset {
+		width: auto;
+		padding: 0 6px;
+		font-size: 10px;
+		font-family: monospace;
+	}
+
+	.zoom-level {
+		font-size: 10px;
+		font-family: monospace;
+		color: var(--text-faint, #6b7280);
+		min-width: 32px;
+		text-align: right;
 	}
 </style>

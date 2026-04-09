@@ -103,12 +103,16 @@
 		justify-content: space-between;
 		align-items: center;
 		gap: 8px;
+		overflow: hidden;
 	}
 
 	.card-characters {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 4px;
+		min-width: 0;
+		flex: 1;
+		overflow: hidden;
 	}
 
 	.char-badge {
