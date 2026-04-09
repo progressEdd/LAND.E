@@ -347,7 +347,8 @@
 
 	.graph-svg {
 		width: 100%;
-		height: 300px;
+		height: 100%;
+		min-height: 400px;
 		background-color: var(--sidebar-bg, #111827);
 	}
 
@@ -357,6 +358,7 @@
 		border: 1px solid var(--border-color, #374151);
 		border-radius: 8px;
 		cursor: grab;
+		height: 500px;
 	}
 
 	.viewport-panning {
