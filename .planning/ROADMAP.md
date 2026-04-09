@@ -1,71 +1,47 @@
-# Roadmap: AI Invasion
+# Roadmap: LAND.E
 
 ## Overview
 
-**v1 (Complete):** Automate the creation of self-documenting experiment/feature branches from `00-experiments`, using git worktrees for parallel development. Phase 1 creates the README template that all future branches inherit. Phase 2 delivers the complete new-project workflow: branch creation, worktree setup, file population, and environment initialization. Phase 3 adds a root README index so the master branch reflects which experiments are active.
+**v1 (Complete):** Project infrastructure — git worktree template, branch creation workflow, root README index, and the full webapp UI (FastAPI + SvelteKit SPA with Tiptap editor, provenance tracking, WebSocket streaming, node graph, SQLite persistence).
 
-**v2 (Webapp UI):** Replace the marimo notebook story writer with a purpose-built webapp. FastAPI + SvelteKit SPA with a Tiptap rich text editor, NovelAI-style color-coded provenance tracking, WebSocket AI generation streaming, collapsible sidebars, SQLite persistence, and markdown export.
+**v2 (Planned):** Dashboard home page, graph rework with character-to-paragraph edges, and cross-story knowledge graph with shared characters.
 
 ## Phases
 
 **Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+- Phase 00: Foundation work (infrastructure, tooling) — already complete
+- Phases 01+: Feature work in execution order
+- Decimal phases (1.1, 2.1): Urgent insertions (marked with INSERTED)
 
-Decimal phases appear between their surrounding integers in numeric order.
-
-- [x] **Phase 1: Template Preparation** - README template with placeholder variables on `00-experiments`
-- [x] **Phase 2: Branch Creation Flow** - Complete new-project workflow from branch creation through ready-to-code state
-- [x] **Phase 3: Root README Index** - Master branch README updated to list active experiments
-- [x] **Phase 4: Webapp UI** - Purpose-built story writer webapp replacing the marimo notebook
+- [x] **Phase 00: Infrastructure** - Template prep, branch creation, root README index
+- [x] **Phase 01: Webapp UI** - Purpose-built story writer webapp replacing the marimo notebook
+- [ ] **Phase 02: Cross-Story Knowledge Graph** - Shared characters across stories, force-directed graph visualization
+- [x] **Phase 03: Dashboard + Graph Rework** - Story dashboard home page, in-story character-to-paragraph graph edges
 
 ## Phase Details
 
-### Phase 1: Template Preparation
-**Goal**: A proper README template exists on `00-experiments` so every new branch inherits a structured, populatable starting point
-**Depends on**: Nothing (first phase)
-**Requirements**: TMPL-01, TMPL-02
-**Success Criteria** (what must be TRUE):
-  1. `README.md` exists on the `00-experiments` branch with `$placeholder` variables (e.g., `$project_name`, `$description`)
-  2. Template includes all required sections: project name, description, what it does, how to run, status
-  3. Template contains a sentinel comment (e.g., `<!-- TEMPLATE: REPLACE ME -->`) that downstream tooling can detect to distinguish template vs populated README
-**Plans:** 1 plan
+### Phase 00: Infrastructure
+**Goal**: Repository scaffolding, git worktree template system, and root README index
+**Status**: Complete (2026-02-13)
+**Folder**: `.planning/phases/00-infrastructure/`
+
+Sub-phases (all complete):
+- 00a. Template Preparation — README template with `$placeholder` variables on `00-experiments`
+- 00b. Branch Creation Flow — New-project workflow: branch, worktree, file population, env setup
+- 00c. Root README Index — Master branch README lists active experiments
 
 Plans:
 - [x] 01-01-PLAN.md — Create README template with $placeholder variables on 00-experiments
+- [x] Branch creation flow (direct execution)
+- [x] Root README update (direct execution)
 
-### Phase 2: Branch Creation Flow
-**Goal**: A user can create a new experiment/feature project in one invocation and get a fully configured, ready-to-code worktree
-**Depends on**: Phase 1 (template must exist on `00-experiments` before branches inherit it)
-**Requirements**: WKTR-01, WKTR-02, WKTR-03, FILE-01, FILE-02, FILE-03, FILE-04
-**Success Criteria** (what must be TRUE):
-  1. Running the creation workflow produces a new branch forked from `00-experiments` with a worktree at `02-worktrees/<branch-name>`
-  2. The branch's README is populated with actual project context (name, description, purpose) — no leftover `$placeholder` variables
-  3. The branch's `pyproject.toml` has the correct project `name` and `description` fields (not the template defaults)
-  4. `uv sync` has run and a working `.venv` exists in the worktree — imports work immediately
-  5. Pre-flight checks prevent duplicate branch or worktree creation with a clear error message
-**Plans**: 1 plan (executed directly, no formal plan file)
-
-Plans:
-- [x] 02-01: Execute branch creation flow end-to-end (direct execution)
-
-### Phase 3: Root README Index
-**Goal**: The master branch README reflects which experiments/features are actively in development
-**Depends on**: Phase 2 (must have at least one created branch to index)
-**Requirements**: ROOT-01
-**Success Criteria** (what must be TRUE):
-  1. After creating a new project, the root `README.md` on the main branch includes an entry for the new branch (name, description, worktree path)
-  2. The root README update does not corrupt or lose existing entries
-**Plans**: 1 plan (executed directly, no formal plan file)
-
-Plans:
-- [x] 03-01: Update root README on master with Active Experiments table (direct execution)
-
-### Phase 4: Webapp UI
+### Phase 01: Webapp UI
 **Goal**: A working story writer webapp with AI generation, inline provenance tracking, structured analysis, and persistence — replacing the marimo notebook
-**Depends on**: Nothing (independent milestone, existing marimo app is reference only)
+**Status**: Complete (2026-02-14)
+**Folder**: `.planning/phases/01-webapp-ui/`
+**Depends on**: Nothing (independent milestone)
 **Branch**: `webapp-ui` (forked from `00-experiments`)
-**Worktree**: `02-worktrees/webapp-ui/` — all code lives here (`backend/` and `frontend/` subdirs). Plans and docs remain on the `development` branch in `.planning/`.
+**Worktree**: `02-worktrees/webapp-ui/`
 **Success Criteria** (what must be TRUE):
   1. FastAPI backend starts with SQLite database (stories, nodes, provenance_spans tables)
   2. SvelteKit frontend renders with collapsible sidebars, split pane layout, dark/light theme
@@ -97,14 +73,40 @@ Plans:
 - [x] 02-15-PLAN.md — Single-letter character labels, clickable seed nodes with seed-guided generation
 - [x] 02-16-PLAN.md — Graph polish: enlarged nodes, theme-aware seed colors, per-node seed persistence, SVG layering fix
 
+### Phase 02: Cross-Story Knowledge Graph
+**Goal**: Global character identity across stories, shared universe visualization, cross-story character linking
+**Status**: Planned (future)
+**Folder**: `.planning/phases/02-cross-story-graph/` (to be created)
+**Depends on**: Phase 01 (Webapp UI), Phase 03 (Dashboard + Graph Rework — in-story graph edges first)
+**Open questions:**
+  - How to identify "same character" across stories? Manual linking? LLM matching?
+  - Does the home page become the cross-story graph, or is it a separate view?
+  - Need a "universe" concept to group stories?
+**Plans:** TBD
+
+### Phase 03: Dashboard + Graph Rework
+**Goal**: Replace the welcome placeholder with a story dashboard home page, and rework the node graph visualizer to draw edges from character nodes to the paragraphs where they appear.
+**Status**: In Progress
+**Folder**: `.planning/phases/03-dashboard-graph-rework/`
+**Depends on**: Phase 01 (Webapp UI must be functional)
+**Branch**: `webapp-ui` (existing)
+**Worktree**: `02-worktrees/webapp-ui/`
+**Success Criteria** (what must be TRUE):
+  1. Home page shows a dashboard with story cards instead of a text welcome message
+  2. Users can create new stories directly from the dashboard without opening the settings panel
+  3. Node graph visualizer draws edges from character supernodes to the paragraph nodes where they are mentioned
+  4. Graph edges are visually clear and don't clutter the tree layout
+  5. Both features work in dark and light themes
+**Plans:** TBD after context gathering
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute: 00 → 01 → 03 → 02 (Phase 03 before 02 because in-story edges are prerequisite for cross-story graph)
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Template Preparation | 1/1 | Complete | 2026-02-13 |
-| 2. Branch Creation Flow | 1/1 | Complete | 2026-02-13 |
-| 3. Root README Index | 1/1 | Complete | 2026-02-13 |
-| 4. Webapp UI | 16/16 | Complete | 2026-02-14 |
+| Phase | Folder | Plans Complete | Status | Completed |
+|-------|--------|----------------|--------|-----------|
+| 00. Infrastructure | `00-infrastructure` | 1+ | Complete | 2026-02-13 |
+| 01. Webapp UI | `01-webapp-ui` | 16/16 | Complete | 2026-02-14 |
+| 02. Cross-Story Graph | `02-cross-story-graph` | 0/? | Planned | — |
+| 03. Dashboard + Graph Rework | `03-dashboard-graph-rework` | 0/? | Complete | — |

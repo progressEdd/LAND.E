@@ -1,3 +1,19 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: completed
+stopped_at: Phase 03 context gathering — .planning/phases/03-dashboard-graph-rework/
+last_updated: "2026-04-09T22:05:33.963Z"
+last_activity: 2026-04-09 — Updated planning docs, reorganized phases, ready for Phase 03
+progress:
+  total_phases: 4
+  completed_phases: 3
+  total_plans: 23
+  completed_plans: 23
+  percent: 74
+---
+
 # Project State
 
 ## Project Reference
@@ -5,20 +21,21 @@
 See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** Every experiment/feature branch is self-documenting from creation — branching, worktree setup, README population, and project naming happen automatically so you can start building immediately.
-**Current focus:** All 4 phases complete. Webapp UI (FastAPI + SvelteKit SPA) fully functional with Tiptap editor, 4-color provenance tracking, WebSocket AI streaming, interactive node graph, and SQLite persistence.
+**Current focus:** Phase 03 (Dashboard + Graph Rework) — story dashboard home page, in-story character-to-paragraph graph edges.
 
 ## Current Position
 
-Phase: 4 of 4 (Webapp UI) — ALL PLANS COMPLETE
-Plan: 16 of 16 in Phase 4 — COMPLETE
-Status: Full-stack story writer webapp operational. Character supernodes with initials, seed-guided generation, theme-aware graph visualization.
-Last activity: 2026-02-14 — Completed 02-16-PLAN.md (Graph polish: enlarged nodes, theme-aware seeds, per-node seed persistence, SVG layering fix)
+Phase: 03 of 3 (dashboard graph rework)
+Plan: 6 of 6
+Status: Milestone complete
+Last activity: 2026-04-09 — Updated planning docs, reorganized phases, ready for Phase 03
 
-Progress: [██████████] 100% (16/16 plans in Phase 4)
+Progress: [███████░░░] 74%
 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 20 (1 + 1 + 1 + 16 + 1 direct)
 - Phase 4 execution: ~30 min across 16 plans
 - All v1 requirements delivered: 10/10
@@ -27,10 +44,10 @@ Progress: [██████████] 100% (16/16 plans in Phase 4)
 
 | Phase | Plans | Status | Completed |
 |-------|-------|--------|-----------|
-| 1. Template Preparation | 1/1 | Complete | 2026-02-13 |
-| 2. Branch Creation Flow | 1/1 | Complete | 2026-02-13 |
-| 3. Root README Index | 1/1 | Complete | 2026-02-13 |
-| 4. Webapp UI | 16/16 | Complete | 2026-02-14 |
+| 00. Infrastructure | 1+ | Complete | 2026-02-13 |
+| 01. Webapp UI | 16/16 | Complete | 2026-02-14 |
+| 03. Dashboard + Graph Rework | 0/? | In Progress | — |
+| 02. Cross-Story Graph | 0/? | Planned | — |
 
 ## Accumulated Context
 
@@ -75,13 +92,14 @@ None — all phases delivered.
 
 ## Session Continuity
 
-Last session: 2026-02-14
-Stopped at: Completed 02-16-PLAN.md (Graph polish). All Phase 4 plans complete.
-Resume file: None — all planned work complete
+Last session: 2026-04-09
+Stopped at: Phase 03 context gathering — .planning/phases/03-dashboard-graph-rework/
+Resume file: .planning/phases/03-dashboard-graph-rework/03-CONTEXT.md (pending)
 
 ## Worktree Status
 
 Active worktrees:
+
 - `00-experiments` — Base Python environment
 - `webapp-ui` — Primary application (FastAPI + SvelteKit)
 - `demo-marimo-app` — Legacy marimo prototype
