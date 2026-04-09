@@ -1,6 +1,5 @@
 {
   "mode": "yolo",
-  "depth": "standard",
   "parallelization": true,
   "commit_docs": true,
   "model_profile": "codex",
@@ -11,5 +10,6 @@
     "research": "ask",
     "plan_check": "ask",
     "verifier": "ask"
-  }
+  },
+  "granularity": "standard"
 }
