@@ -14,6 +14,7 @@
 	let rightCollapsed = $state(false);
 
 	let isEditing = $derived(!!storyState.activeStoryId);
+	let activeTitle = $derived(storyState.activeStory?.title ?? '');
 </script>
 
 <div class="app-shell" class:dark={themeState.isDark}>
@@ -28,7 +29,15 @@
 	<div class="main-content">
 		<!-- Top Bar -->
 		<div class="top-bar">
-			<span class="app-title">AI Story Writer</span>
+			{#if isEditing}
+				<div class="breadcrumb">
+					<button class="breadcrumb-link" onclick={() => storyState.clearActiveStory()}>Home</button>
+					<span class="breadcrumb-sep">/</span>
+					<span class="breadcrumb-current">{activeTitle}</span>
+				</div>
+			{:else}
+				<span class="app-title">AI Story Writer</span>
+			{/if}
 			<button class="theme-toggle" onclick={() => themeState.toggle()} aria-label="Toggle theme">
 				{themeState.isDark ? '\u2600\uFE0F' : '\uD83C\uDF19'}
 			</button>
@@ -152,6 +161,40 @@
 	.dashboard-area {
 		flex: 1;
 		overflow: auto;
+	}
+
+	.breadcrumb {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 13px;
+	}
+
+	.breadcrumb-link {
+		background: none;
+		border: none;
+		color: #6b7280;
+		cursor: pointer;
+		font-size: 13px;
+		font-weight: 600;
+		padding: 0;
+	}
+
+	.breadcrumb-link:hover {
+		color: #a5b4fc;
+	}
+
+	.breadcrumb-sep {
+		color: var(--text-faint, #6b7280);
+	}
+
+	.breadcrumb-current {
+		color: var(--text-primary, #e5e7eb);
+		font-weight: 600;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 300px;
 	}
 
 	.pane-content {

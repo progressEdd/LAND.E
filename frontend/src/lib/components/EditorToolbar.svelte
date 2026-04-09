@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { editorState } from '$lib/stores/editor.svelte';
+	import { storyState } from '$lib/stores/story.svelte';
 
 	type ToolbarButton = {
 		label: string;
@@ -94,9 +95,24 @@
 			isDisabled: () => !editorState.canRedo
 		}
 	];
+
+	let activeStoryTitle = $derived(storyState.activeStory?.title ?? '');
 </script>
 
 <div class="toolbar">
+	<button
+		class="toolbar-btn home-btn"
+		onclick={() => storyState.clearActiveStory()}
+		title="Back to Dashboard (Home)"
+	>
+		&#x2302;
+	</button>
+	<div class="separator"></div>
+	{#if activeStoryTitle}
+		<span class="story-title-breadcrumb">{activeStoryTitle}</span>
+		<div class="separator"></div>
+	{/if}
+
 	<div class="button-group">
 		{#each formatButtons as btn}
 			<button
@@ -223,5 +239,24 @@
 	.toolbar-btn:disabled {
 		opacity: 0.3;
 		cursor: default;
+	}
+
+	.home-btn {
+		font-size: 16px;
+		color: var(--text-muted, #9ca3af);
+	}
+
+	.home-btn:hover {
+		color: #a5b4fc;
+	}
+
+	.story-title-breadcrumb {
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--text-primary, #e5e7eb);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 200px;
 	}
 </style>

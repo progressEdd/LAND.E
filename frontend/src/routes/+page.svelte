@@ -3,6 +3,7 @@
 	import Editor from '$lib/components/Editor.svelte';
 	import EditorToolbar from '$lib/components/EditorToolbar.svelte';
 	import GenerationControls from '$lib/components/GenerationControls.svelte';
+	import Dashboard from '$lib/components/Dashboard.svelte';
 	import { generationState } from '$lib/stores/generation.svelte';
 	import { storyState } from '$lib/stores/story.svelte';
 
@@ -45,13 +46,7 @@
 		<GenerationControls />
 	</div>
 {:else}
-	<!-- Dashboard placeholder — replaced by Dashboard.svelte in Plan 03 -->
-	<div class="dashboard-placeholder">
-		<div class="welcome-content">
-			<h2 class="welcome-title">AI Story Writer</h2>
-			<p class="welcome-text">Loading dashboard...</p>
-		</div>
-	</div>
+	<Dashboard />
 {/if}
 
 <style>
@@ -61,34 +56,5 @@
 		height: 100%;
 		width: 100%;
 		background-color: var(--panel-bg, #030712);
-	}
-
-	.dashboard-placeholder {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		height: 100%;
-		width: 100%;
-		background-color: var(--panel-bg, #030712);
-	}
-
-	.welcome-content {
-		text-align: center;
-		max-width: 400px;
-		padding: 32px;
-	}
-
-	.welcome-title {
-		font-size: 1.5rem;
-		font-weight: 700;
-		color: var(--text-primary, #e5e7eb);
-		margin: 0 0 12px;
-	}
-
-	.welcome-text {
-		color: var(--text-secondary, #d1d5db);
-		font-size: 15px;
-		margin: 0;
-		line-height: 1.5;
 	}
 </style>
