@@ -153,6 +153,7 @@
 	let panStartY = $state(0);
 	let panStartPanX = $state(0);
 	let panStartPanY = $state(0);
+	let panStartPointerId = $state(-1);
 	let graphEl = $state<HTMLDivElement | null>(null);
 
 	const MIN_SCALE = 0.3;
@@ -188,7 +189,9 @@
 			panStartY = e.clientY;
 			panStartPanX = panX;
 			panStartPanY = panY;
-			(e.currentTarget as HTMLElement)?.setPointerCapture(e.pointerId);
+			panStartPointerId = e.pointerId;
+			// Do NOT capture pointer here — defer until drag is confirmed
+			// Otherwise click events on child SVG nodes get suppressed
 		}
 	}
 
@@ -196,11 +199,15 @@
 		if (!isPanning) return;
 		const dx = e.clientX - panStartX;
 		const dy = e.clientY - panStartY;
-		if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+		if (!didDrag && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
 			didDrag = true;
+			// Now safe to capture — user is definitely dragging
+			graphEl?.setPointerCapture(panStartPointerId);
 		}
-		panX = panStartPanX + dx;
-		panY = panStartPanY + dy;
+		if (didDrag) {
+			panX = panStartPanX + dx;
+			panY = panStartPanY + dy;
+		}
 	}
 
 	function handlePointerUp(): void {
