@@ -36,7 +36,7 @@
 					<span class="breadcrumb-current">{activeTitle}</span>
 				</div>
 			{:else}
-				<span class="app-title">AI Story Writer</span>
+				<span class="app-title">LAND.E</span>
 			{/if}
 			<button class="theme-toggle" onclick={() => themeState.toggle()} aria-label="Toggle theme">
 				{themeState.isDark ? '\u2600\uFE0F' : '\uD83C\uDF19'}

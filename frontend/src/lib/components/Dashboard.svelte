@@ -79,7 +79,7 @@
 	{:else if overviewStories.length === 0 && !showCreateForm}
 		<!-- Empty state (D-11, D-13) -->
 		<div class="empty-state">
-			<h2 class="empty-title">Welcome to AI Story Writer</h2>
+			<h2 class="empty-title">Welcome to LAND.E</h2>
 			<p class="empty-text">Create your first story to get started.</p>
 			<div class="empty-actions">
 				<button class="btn btn-primary" onclick={() => (showCreateForm = true)} title="Start writing a new story with a title and premise">
