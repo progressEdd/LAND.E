@@ -1,8 +1,10 @@
-# Roadmap: Project Template Workflow
+# Roadmap: AI Invasion
 
 ## Overview
 
-Automate the creation of self-documenting experiment/feature branches from `00-experiments`, using git worktrees for parallel development. Phase 1 creates the README template that all future branches inherit. Phase 2 delivers the complete new-project workflow: branch creation, worktree setup, file population, and environment initialization. Phase 3 adds a root README index so the master branch reflects which experiments are active.
+**v1 (Complete):** Automate the creation of self-documenting experiment/feature branches from `00-experiments`, using git worktrees for parallel development. Phase 1 creates the README template that all future branches inherit. Phase 2 delivers the complete new-project workflow: branch creation, worktree setup, file population, and environment initialization. Phase 3 adds a root README index so the master branch reflects which experiments are active.
+
+**v2 (Webapp UI):** Replace the marimo notebook story writer with a purpose-built webapp. FastAPI + SvelteKit SPA with a Tiptap rich text editor, NovelAI-style color-coded provenance tracking, WebSocket AI generation streaming, collapsible sidebars, SQLite persistence, and markdown export.
 
 ## Phases
 
@@ -15,6 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Template Preparation** - README template with placeholder variables on `00-experiments`
 - [x] **Phase 2: Branch Creation Flow** - Complete new-project workflow from branch creation through ready-to-code state
 - [x] **Phase 3: Root README Index** - Master branch README updated to list active experiments
+- [x] **Phase 4: Webapp UI** - Purpose-built story writer webapp replacing the marimo notebook
 
 ## Phase Details
 
@@ -58,13 +61,50 @@ Plans:
 Plans:
 - [x] 03-01: Update root README on master with Active Experiments table (direct execution)
 
+### Phase 4: Webapp UI
+**Goal**: A working story writer webapp with AI generation, inline provenance tracking, structured analysis, and persistence — replacing the marimo notebook
+**Depends on**: Nothing (independent milestone, existing marimo app is reference only)
+**Branch**: `webapp-ui` (forked from `00-experiments`)
+**Worktree**: `02-worktrees/webapp-ui/` — all code lives here (`backend/` and `frontend/` subdirs). Plans and docs remain on the `development` branch in `.planning/`.
+**Success Criteria** (what must be TRUE):
+  1. FastAPI backend starts with SQLite database (stories, nodes, provenance_spans tables)
+  2. SvelteKit frontend renders with collapsible sidebars, split pane layout, dark/light theme
+  3. Tiptap editor supports rich text formatting and 4-color provenance marking (AI=white, user=blue, edits=pink, prompt=cream)
+  4. REST API handles stories CRUD, nodes CRUD, LLM backend config, model listing, and warmup
+  5. WebSocket streams AI-generated text token-by-token into the editor with provenance marks
+  6. User can accept or reject AI drafts; accepted drafts persist, rejected drafts are removed
+  7. Analysis panel shows structured StoryAnalysis cards (logline, cast, timeline, etc.) after generation
+  8. Stories persist in SQLite and restore with provenance on page refresh
+  9. Markdown export produces a downloadable .md file of the active story path
+  10. 4 LLM backends supported: lmstudio, ollama, openai, llamacpp
+**Plans:** 16 plans (16 complete)
+
+Plans:
+- [x] 02-01-PLAN.md — Backend scaffold: FastAPI, SQLite schema, LLM service, story pipeline
+- [x] 02-02-PLAN.md — Frontend scaffold: SvelteKit SPA, Tailwind, layout shell, sidebars, theme
+- [x] 02-03-PLAN.md — Tiptap editor with custom provenance mark extension and toolbar
+- [x] 02-04-PLAN.md — REST API endpoints, frontend API client, settings panel
+- [x] 02-05-PLAN.md — WebSocket generation streaming, inline draft flow in editor
+- [x] 02-06-PLAN.md — Analysis panel, markdown export, story loading, app polish
+- [x] 02-07-PLAN.md — "I'm Feeling Lucky" random premise generator
+- [x] 02-08-PLAN.md — Bug fixes: accept truncation, missing space, generating animation, title population, delete button
+- [x] 02-09-PLAN.md — Node graph backend: character_mentions table, analysis persistence, tree API, branch switching endpoint
+- [x] 02-10-PLAN.md — Frontend graph visualizer: interactive SVG tree, character badges, branch switching UX, active path highlighting
+- [x] 02-11-PLAN.md — Bug fixes: light mode provenance visibility, graph visualization rework, node position labels
+- [x] 02-12-PLAN.md — Graph hover tooltips and zoom/pan navigation
+- [x] 02-13-PLAN.md — Bug fixes: light-mode story highlight, dark-mode provenance visibility, graph label cleanup, edge opacity
+- [x] 02-14-PLAN.md — Character initials labels, remove cross-edges from paragraph nodes
+- [x] 02-15-PLAN.md — Single-letter character labels, clickable seed nodes with seed-guided generation
+- [x] 02-16-PLAN.md — Graph polish: enlarged nodes, theme-aware seed colors, per-node seed persistence, SVG layering fix
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3
+Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Template Preparation | 1/1 | Complete | 2026-02-13 |
 | 2. Branch Creation Flow | 1/1 | Complete | 2026-02-13 |
 | 3. Root README Index | 1/1 | Complete | 2026-02-13 |
+| 4. Webapp UI | 16/16 | Complete | 2026-02-14 |
