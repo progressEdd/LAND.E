@@ -218,6 +218,17 @@
 						>
 							{n.label.charAt(0).toUpperCase()}
 						</text>
+						<!-- Character name label on hover -->
+						{#if hoveredNode === n.id}
+							<text
+								x={n.x} y={n.y + 30}
+								class="char-hover-name"
+								text-anchor="middle"
+								dominant-baseline="hanging"
+							>
+								{n.label.length > 14 ? n.label.slice(0, 13) + '\u2026' : n.label}
+							</text>
+						{/if}
 					{/if}
 				</g>
 			{/each}
@@ -324,5 +335,13 @@
 		fill: #ffffff;
 		font-size: 12px;
 		font-weight: 700;
+	}
+
+	.char-hover-name {
+		fill: var(--text-primary, #e5e7eb);
+		font-size: 10px;
+		font-weight: 600;
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+		pointer-events: none;
 	}
 </style>
