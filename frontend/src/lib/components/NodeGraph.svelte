@@ -274,7 +274,41 @@
 	}
 
 	let tooltip = $state<TooltipData | null>(null);
+	// ---- Character hover state for edges ----
+	let hoveredCharacter = $state<string | null>(null);
 	let graphScrollEl = $state<HTMLDivElement | null>(null);
+
+	interface CharEdge {
+		x1: number; y1: number;
+		x2: number; y2: number;
+		color: string;
+	}
+
+	const charEdges = $derived.by((): CharEdge[] => {
+		const l = layout;
+		if (!l || !hoveredCharacter) return [];
+
+		const char = l.characters.find((c) => c.name === hoveredCharacter);
+		if (!char) return [];
+
+		const paraMap = new Map(l.paragraphs.map((p) => [p.id, p]));
+		const edges: CharEdge[] = [];
+
+		for (const nodeId of char.nodeIds) {
+			const para = paraMap.get(nodeId);
+			if (para) {
+				edges.push({
+					x1: char.x,
+					y1: char.y,
+					x2: para.x,
+					y2: para.y,
+					color: char.color,
+				});
+			}
+		}
+
+		return edges;
+	});
 
 	function showParaTooltip(e: MouseEvent, p: PositionedParagraph): void {
 		const rect = graphScrollEl?.getBoundingClientRect();
@@ -436,6 +470,16 @@
 					/>
 				{/each}
 
+				<!-- Layer 1.5: Character→paragraph edges (hover-only) -->
+				{#each charEdges as ce, i (`char-edge-${hoveredCharacter}-${i}`)}
+					<line
+						x1={ce.x1} y1={ce.y1}
+						x2={ce.x2} y2={ce.y2}
+						class="char-edge"
+						style="stroke: {ce.color}"
+					/>
+				{/each}
+
 				<!-- Layer 2: Seed edges (behind all nodes) -->
 				{#each layout.seeds as s, i (`${s.parentId}-edge-${s.index}`)}
 					<line
@@ -481,8 +525,8 @@
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<g
 						class="char-group"
-						onmouseenter={(e) => showCharTooltip(e, c)}
-						onmouseleave={hideTooltip}
+						onmouseenter={(e) => { hoveredCharacter = c.name; showCharTooltip(e, c); }}
+						onmouseleave={() => { hoveredCharacter = null; hideTooltip(); }}
 					>
 						<circle
 							cx={c.x} cy={c.y} r={CHAR_RADIUS}
@@ -630,6 +674,14 @@
 		opacity: 1;
 	}
 
+	/* ---- Character→paragraph edges (hover-only) ---- */
+	.char-edge {
+		stroke-width: 1.5;
+		opacity: 0.4;
+		pointer-events: none;
+		stroke-dasharray: 6 3;
+	}
+
 	/* ---- Paragraph nodes ---- */
 	.para-circle {
 		fill: var(--hover-bg, #1f2937);
@@ -701,6 +753,11 @@
 
 	.char-group {
 		cursor: default;
+	}
+
+	.char-group:hover .char-circle {
+		opacity: 1;
+		stroke-width: 3;
 	}
 
 	/* ---- Seed nodes ---- */

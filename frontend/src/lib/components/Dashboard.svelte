@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import StoryCard from './StoryCard.svelte';
+	import DashboardGraph from './DashboardGraph.svelte';
 	import { storyState } from '$lib/stores/story.svelte';
 	import { api } from '$lib/api/rest';
 	import type { StoryOverviewStory } from '$lib/types';
@@ -140,6 +141,10 @@
 						<StoryCard {story} />
 					{/each}
 				</div>
+			{/if}
+
+			{#if overviewStories.length > 0}
+				<DashboardGraph />
 			{/if}
 		</div>
 	{/if}

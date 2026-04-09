@@ -29,6 +29,8 @@
 		"@tiptap/extension-text-style": "^3.19.0",
 		"@tiptap/pm": "^3.19.0",
 		"@tiptap/starter-kit": "^3.19.0",
+		"@types/d3-force": "^3.0.10",
+		"d3-force": "^3.0.0",
 		"d3-hierarchy": "^3.1.2",
 		"svelte-splitpanes": "^8.0.12"
 	}
