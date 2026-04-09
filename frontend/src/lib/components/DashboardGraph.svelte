@@ -280,9 +280,9 @@
 					onmouseleave={() => (hoveredNode = null)}
 				>
 					{#if n.type === 'story'}
-						<foreignObject x={n.x - 90} y={n.y - 32} width="180" height="64">
+						<foreignObject x={n.x - 90} y={n.y - 40} width="180" height="80">
 							<div class="story-node-card" title={n.label}>
-								<span class="story-node-title">{n.label.length > 22 ? n.label.slice(0, 21) + '\u2026' : n.label}</span>
+								<span class="story-node-title">{n.label}</span>
 							</div>
 						</foreignObject>
 					{:else}
@@ -410,7 +410,6 @@
 		border-radius: 6px;
 		transition: background-color 150ms ease, border-color 150ms ease;
 		box-sizing: border-box;
-		overflow: hidden;
 	}
 
 	.graph-node:hover .story-node-card {
@@ -425,7 +424,8 @@
 		color: var(--text-primary, #e5e7eb);
 		text-align: center;
 		line-height: 1.3;
-		word-break: break-word;
+		word-wrap: break-word;
+		overflow-wrap: break-word;
 	}
 
 	.char-rect {
