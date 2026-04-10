@@ -244,6 +244,76 @@
 	}
 
 	let didDrag = $state(false);
+	let activeMenuNodeId = $state<string | null>(null);
+	let activeMenuPos = $state<{ x: number; y: number }>({ x: 0, y: 0 });
+	let showLinkDropdown = $state(false);
+
+	// Extract raw name and story IDs from character node
+	function getCharNodeDetails(node: GraphNode): { rawName: string; storyIds: string[] } | null {
+		if (node.type !== 'character') return null;
+		// node.id is "char:Name" and node.label is the full raw name
+		// Find story IDs from links
+		const storyIds = links
+			.filter(l => {
+				const src = typeof l.source === 'string' ? l.source : (l.source as GraphNode).id;
+				return src === node.id;
+			})
+			.map(l => {
+				const tgt = typeof l.target === 'string' ? l.target : (l.target as GraphNode).id;
+				return tgt;
+			});
+		return { rawName: node.label, storyIds };
+	}
+
+	async function linkToExisting(canonicalId: string): Promise<void> {
+		if (!activeMenuNodeId) return;
+		const node = nodes.find(n => n.id === activeMenuNodeId);
+		if (!node) return;
+		const details = getCharNodeDetails(node);
+		if (!details || details.storyIds.length === 0) return;
+
+		try {
+			await api.linkMention(canonicalId, details.rawName, details.storyIds[0]);
+			activeMenuNodeId = null;
+			showLinkDropdown = false;
+			await characterState.loadCandidates();
+			loadGraph();
+			refreshAfterGraphOp?.();
+		} catch (e) {
+			characterState.error = e instanceof Error ? e.message : String(e);
+		}
+	}
+
+	async function createAsNew(): Promise<void> {
+		if (!activeMenuNodeId) return;
+		const node = nodes.find(n => n.id === activeMenuNodeId);
+		if (!node) return;
+		const details = getCharNodeDetails(node);
+		if (!details || details.storyIds.length === 0) return;
+
+		try {
+			await api.linkCharacters({
+				canonical_name: details.rawName,
+				mentions: details.storyIds.map(sid => ({ raw_name: details.rawName, story_id: sid }))
+			});
+			activeMenuNodeId = null;
+			showLinkDropdown = false;
+			await characterState.loadCandidates();
+			await characterState.loadCharacters();
+			loadGraph();
+			refreshAfterGraphOp?.();
+		} catch (e) {
+			characterState.error = e instanceof Error ? e.message : String(e);
+		}
+	}
+
+	function closeMenu(): void {
+		activeMenuNodeId = null;
+		showLinkDropdown = false;
+	}
+
+	// Optional callback for Dashboard to refresh after graph operations
+	let refreshAfterGraphOp: (() => void) | undefined = $state(undefined);
 
 	function handlePointerDown(e: PointerEvent): void {
 		if (e.button === 0) {
@@ -281,6 +351,15 @@
 			storyState.setActiveStory(node.id);
 		} else if (node.type === 'linked_character' && node.canonical_id) {
 			characterState.selectCharacter(node.canonical_id);
+		} else if (node.type === 'character') {
+			// Show context menu for unlinked character
+			activeMenuNodeId = node.id;
+			activeMenuPos = { x: node.x + 20, y: node.y };
+			showLinkDropdown = false;
+		}
+		// Close any other open menus
+		if (node.type !== 'character') {
+			closeMenu();
 		}
 	}
 
@@ -306,7 +385,9 @@
 		<!-- No graph when no stories exist -->
 	{:else}
 		<h4 class="graph-title">Story Universe</h4>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		{#if !nodes.some(n => n.type === 'character' || n.type === 'linked_character')}
+			<p class="graph-empty-msg">Generate stories to see character connections</p>
+		{/if}
 		<div
 			class="graph-viewport"
 			bind:this={graphEl}
@@ -438,6 +519,34 @@
 				<button class="zoom-btn zoom-reset" onclick={resetView} title="Reset view">1:1</button>
 				<span class="zoom-level">{Math.round(scale * 100)}%</span>
 			</div>
+
+			<!-- Character context menu (for unlinked characters) -->
+			{#if activeMenuNodeId}
+				<div class="char-menu" style="left: {(activeMenuPos.x + panX) * scale}px; top: {(activeMenuPos.y + panY) * scale}px">
+					<button class="menu-item" onclick={() => (showLinkDropdown = true)}>
+						Link to existing character
+					</button>
+					{#if showLinkDropdown}
+						<div class="link-dropdown">
+							{#if characterState.canonicalCharacters.length === 0}
+								<div class="dropdown-empty">No existing characters</div>
+							{:else}
+								{#each characterState.canonicalCharacters as cc}
+									<button class="dropdown-item" onclick={() => linkToExisting(cc.id)}>
+										{cc.canonical_name} ({cc.story_count} stories)
+									</button>
+								{/each}
+							{/if}
+						</div>
+					{/if}
+					<button class="menu-item" onclick={createAsNew}>
+						Create as new character
+					</button>
+					<button class="menu-item menu-cancel" onclick={closeMenu}>
+						Cancel
+					</button>
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>
@@ -457,6 +566,12 @@
 		letter-spacing: 0.05em;
 		color: var(--text-muted, #9ca3af);
 		margin: 0 0 12px;
+	}
+
+	.graph-empty-msg {
+		font-size: 13px;
+		color: var(--text-faint, #6b7280);
+		margin: 0 0 8px;
 	}
 
 	.graph-svg {
@@ -642,5 +757,69 @@
 		color: var(--text-faint, #6b7280);
 		min-width: 32px;
 		text-align: right;
+	}
+
+	/* ---- Character context menu ---- */
+	.char-menu {
+		position: absolute;
+		z-index: 20;
+		min-width: 180px;
+		background-color: var(--sidebar-bg, #111827);
+		border: 1px solid var(--border-color, #374151);
+		border-radius: 6px;
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+		padding: 4px 0;
+	}
+
+	.menu-item {
+		display: block;
+		width: 100%;
+		padding: 8px 12px;
+		font-size: 13px;
+		text-align: left;
+		background: none;
+		border: none;
+		color: var(--text-primary, #e5e7eb);
+		cursor: pointer;
+	}
+
+	.menu-item:hover {
+		background-color: var(--hover-bg, #1f2937);
+	}
+
+	.menu-cancel {
+		color: var(--text-muted, #9ca3af);
+		border-top: 1px solid var(--border-color, #374151);
+		margin-top: 4px;
+		padding-top: 8px;
+	}
+
+	.link-dropdown {
+		max-height: 150px;
+		overflow-y: auto;
+		border-top: 1px solid var(--border-color, #374151);
+	}
+
+	.dropdown-item {
+		display: block;
+		width: 100%;
+		padding: 6px 12px;
+		font-size: 12px;
+		text-align: left;
+		background: none;
+		border: none;
+		color: var(--text-secondary, #d1d5db);
+		cursor: pointer;
+	}
+
+	.dropdown-item:hover {
+		background-color: var(--hover-bg, #1f2937);
+		color: var(--text-primary, #e5e7eb);
+	}
+
+	.dropdown-empty {
+		padding: 8px 12px;
+		font-size: 12px;
+		color: var(--text-faint, #6b7280);
 	}
 </style>

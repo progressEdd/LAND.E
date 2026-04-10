@@ -204,6 +204,13 @@ class ApiClient {
 			method: 'DELETE'
 		});
 	}
+
+	async unlinkCharacter(canonicalId: string, rawName: string, storyId: string): Promise<CanonicalCharacter> {
+		return this.request<CanonicalCharacter>(`/api/characters/${canonicalId}/unlink`, {
+			method: 'POST',
+			body: JSON.stringify({ raw_name: rawName, story_id: storyId, canonical_id: canonicalId })
+		});
+	}
 }
 
 export const api = new ApiClient();

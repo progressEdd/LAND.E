@@ -99,6 +99,18 @@ class CharacterState {
 	closeMatchPanel(): void {
 		this.showMatchPanel = false;
 	}
+
+	async unlinkMention(canonicalId: string, rawName: string, storyId: string): Promise<void> {
+		this.error = null;
+		try {
+			await api.unlinkCharacter(canonicalId, rawName, storyId);
+			this.selectedCharacter = null;
+			this.showProfilePanel = false;
+			await Promise.all([this.loadCandidates(), this.loadCharacters()]);
+		} catch (e) {
+			this.error = e instanceof Error ? e.message : String(e);
+		}
+	}
 }
 
 export const characterState = new CharacterState();

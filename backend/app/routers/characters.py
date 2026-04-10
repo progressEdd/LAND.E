@@ -222,6 +222,20 @@ async def link_characters(req: LinkCharactersRequest):
     canonical_id = uuid.uuid4().hex
 
     async with get_db() as db:
+        # Validate: check no mention is already confirmed to a different canonical
+        for mention in req.mentions:
+            conflict_rows = await db.execute_fetchall(
+                """SELECT canonical_id FROM character_aliases
+                   WHERE raw_name = ? AND story_id = ? AND status = 'confirmed'
+                   AND canonical_id != ?""",
+                (mention.raw_name, mention.story_id, canonical_id),
+            )
+            if conflict_rows:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"'{mention.raw_name}' in story {mention.story_id} is already confirmed to another character",
+                )
+
         # Create canonical character
         await db.execute(
             """INSERT INTO canonical_characters (id, canonical_name)
@@ -232,20 +246,33 @@ async def link_characters(req: LinkCharactersRequest):
         # Insert aliases and track unique story_ids
         seen_story_ids: set[str] = set()
         for mention in req.mentions:
-            alias_id = uuid.uuid4().hex
             normalized = normalize_character_name(mention.raw_name)
-            await db.execute(
-                """INSERT INTO character_aliases (id, canonical_id, story_id, raw_name, normalized_name, status)
-                   VALUES (?, ?, ?, ?, ?, 'confirmed')""",
-                (alias_id, canonical_id, mention.story_id, mention.raw_name, normalized),
+            # Check for existing 'suggested' alias — update it instead of inserting duplicate
+            existing = await db.execute_fetchall(
+                """SELECT id FROM character_aliases
+                   WHERE raw_name = ? AND story_id = ? AND status = 'suggested'""",
+                (mention.raw_name, mention.story_id),
             )
+            if existing:
+                await db.execute(
+                    """UPDATE character_aliases SET canonical_id = ?, status = 'confirmed', normalized_name = ?
+                       WHERE raw_name = ? AND story_id = ? AND status = 'suggested'""",
+                    (canonical_id, normalized, mention.raw_name, mention.story_id),
+                )
+            else:
+                alias_id = uuid.uuid4().hex
+                await db.execute(
+                    """INSERT INTO character_aliases (id, canonical_id, story_id, raw_name, normalized_name, status)
+                       VALUES (?, ?, ?, ?, ?, 'confirmed')""",
+                    (alias_id, canonical_id, mention.story_id, mention.raw_name, normalized),
+                )
             seen_story_ids.add(mention.story_id)
 
         # Create appearance records for each unique story
         for story_id in seen_story_ids:
             appearance_id = uuid.uuid4().hex
             await db.execute(
-                """INSERT INTO character_story_appearances (id, canonical_id, story_id)
+                """INSERT OR IGNORE INTO character_story_appearances (id, canonical_id, story_id)
                    VALUES (?, ?, ?)""",
                 (appearance_id, canonical_id, story_id),
             )
@@ -270,6 +297,19 @@ async def split_character(canonical_id: str, req: SplitCharactersRequest):
         )
         if not char_rows:
             raise HTTPException(status_code=404, detail="Canonical character not found")
+
+        # Validate that mentions_to_split belong to this canonical
+        for mention in req.mentions_to_split:
+            alias_rows = await db.execute_fetchall(
+                """SELECT id FROM character_aliases
+                   WHERE canonical_id = ? AND raw_name = ? AND story_id = ?""",
+                (canonical_id, mention.raw_name, mention.story_id),
+            )
+            if not alias_rows:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Mention '{mention.raw_name}' in story {mention.story_id} does not belong to canonical {canonical_id}",
+                )
 
         # Create new canonical character with first raw_name as name
         new_name = req.mentions_to_split[0].raw_name
@@ -464,3 +504,57 @@ async def delete_character(canonical_id: str):
         await db.commit()
 
     return Response(status_code=204)
+
+
+@router.post("/{canonical_id}/unlink", response_model=CanonicalCharacterResponse)
+async def unlink_mention(canonical_id: str, req: ManualLinkRequest):
+    """Unlink a character mention from a canonical character.
+
+    Removes the alias and appearance record. If no aliases remain,
+    deletes the canonical character entirely.
+    """
+    async with get_db() as db:
+        # Verify canonical exists
+        char_rows = await db.execute_fetchall(
+            "SELECT id FROM canonical_characters WHERE id = ?", (canonical_id,)
+        )
+        if not char_rows:
+            raise HTTPException(status_code=404, detail="Canonical character not found")
+
+        # Remove the alias
+        await db.execute(
+            """DELETE FROM character_aliases
+               WHERE canonical_id = ? AND raw_name = ? AND story_id = ?""",
+            (canonical_id, req.raw_name, req.story_id),
+        )
+
+        # Remove appearance if no more aliases for this story
+        remaining_in_story = await db.execute_fetchall(
+            """SELECT id FROM character_aliases
+               WHERE canonical_id = ? AND story_id = ?""",
+            (canonical_id, req.story_id),
+        )
+        if not remaining_in_story:
+            await db.execute(
+                """DELETE FROM character_story_appearances
+                   WHERE canonical_id = ? AND story_id = ?""",
+                (canonical_id, req.story_id),
+            )
+
+        # If no aliases left, delete the canonical character
+        remaining_aliases = await db.execute_fetchall(
+            "SELECT id FROM character_aliases WHERE canonical_id = ?", (canonical_id,)
+        )
+        if not remaining_aliases:
+            await db.execute(
+                "DELETE FROM canonical_characters WHERE id = ?", (canonical_id,)
+            )
+            await db.commit()
+            return Response(status_code=204)
+
+        await db.commit()
+
+    result = await _fetch_full_character(canonical_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Canonical character not found")
+    return result

@@ -181,6 +181,18 @@
 		flex-direction: column;
 		overflow: hidden;
 		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+		animation: slide-in-right 150ms ease-out;
+	}
+
+	@keyframes slide-in-right {
+		from {
+			opacity: 0;
+			transform: translateX(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateX(0);
+		}
 	}
 
 	.profile-header {
@@ -255,9 +267,9 @@
 		padding: 3px 10px;
 		font-size: 12px;
 		border-radius: 12px;
-		background-color: rgba(99, 102, 241, 0.15);
+		background-color: var(--hover-bg, #1f2937);
 		color: #a5b4fc;
-		border: 1px solid rgba(99, 102, 241, 0.3);
+		border: 1px solid var(--border-color, #374151);
 	}
 
 	.appearance-list {
@@ -272,6 +284,7 @@
 		border-radius: 4px;
 		background-color: var(--hover-bg, #1f2937);
 		font-size: 13px;
+		border-left: 3px solid var(--accent-color, #6366f1);
 	}
 
 	.appearance-title {

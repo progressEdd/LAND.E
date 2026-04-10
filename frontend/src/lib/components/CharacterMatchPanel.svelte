@@ -80,6 +80,18 @@
 		flex-direction: column;
 		overflow: hidden;
 		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+		animation: slide-in-right 150ms ease-out;
+	}
+
+	@keyframes slide-in-right {
+		from {
+			opacity: 0;
+			transform: translateX(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateX(0);
+		}
 	}
 
 	.match-header {
@@ -142,6 +154,11 @@
 		border-radius: 6px;
 		margin-bottom: 8px;
 		background-color: var(--hover-bg, #1f2937);
+		transition: border-color 150ms ease;
+	}
+
+	.candidate-card:hover {
+		border-color: #6366f1;
 	}
 
 	.candidate-name {
