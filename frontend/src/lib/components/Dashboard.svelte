@@ -16,6 +16,7 @@
 	let newPremise = $state('');
 	let isCreating = $state(false);
 	let isLoadingPremise = $state(false);
+	let dashboardGraph = $state<ReturnType<typeof DashboardGraph> | null>(null);
 
 	async function loadOverview(): Promise<void> {
 		isLoading = true;
@@ -28,6 +29,14 @@
 		} finally {
 			isLoading = false;
 		}
+	}
+
+	async function refreshAfterCharacterOp(): Promise<void> {
+		await Promise.all([
+			loadOverview(),
+			characterState.loadCharacters(),
+		]);
+		dashboardGraph?.refreshGraph?.();
 	}
 
 	onMount(() => {
@@ -150,7 +159,7 @@
 
 			{#if overviewStories.length > 0}
 				<div class="graph-area">
-					<DashboardGraph />
+					<DashboardGraph bind:this={dashboardGraph} />
 
 					<!-- Characters section -->
 					<div class="characters-bar">

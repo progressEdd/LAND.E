@@ -71,6 +71,11 @@
 		}
 	}
 
+	// Expose refresh for parent components
+	export function refreshGraph(): void {
+		loadGraph();
+	}
+
 	function buildGraph(data: StoryOverviewResponse): void {
 		if (data.stories.length === 0 && data.characters.length === 0 && (data.canonical_characters ?? []).length === 0) {
 			nodes = [];
@@ -134,25 +139,35 @@
 			}
 		}
 
+		// Adaptive force parameters based on graph size
+		const nodeCount = graphNodes.length;
+		const isLargeGraph = nodeCount > 15;
+		const baseLinkDistance = isLargeGraph ? 120 : 100;
+		const chargeStrength = isLargeGraph ? -350 : -250;
+
 		// Run force simulation with adjusted parameters
 		const simulation = forceSimulation<SimNode>(graphNodes as any)
 			.force('link', forceLink<SimNode, SimLink>(graphLinks as any)
 				.id((d: any) => d.id)
 				.distance((d: any) => {
-					const src = d.source as SimNode | string;
-					const srcType = typeof src === 'string' ? '' : src.type;
-					return srcType === 'linked_character' ? 80 : 100;
+					const sourceId = typeof d.source === 'object' ? d.source.id : d.source;
+					return sourceId.startsWith('canonical:') ? 80 : baseLinkDistance;
 				})
 			)
-			.force('charge', forceManyBody().strength(-250))
-			.force('center', forceCenter(300, 150))
+			.force('charge', forceManyBody().strength((d: any) => {
+				if (d.type === 'story') return chargeStrength;
+				if (d.type === 'linked_character') return chargeStrength * 0.8;
+				return chargeStrength * 0.6; // Raw characters: less repulsion
+			}))
+			.force('center', forceCenter(isLargeGraph ? 400 : 300, isLargeGraph ? 200 : 150))
 			.force('collide', forceCollide<SimNode>().radius((d: any) => {
 				return d.type === 'linked_character' ? 70 : 60;
 			}) as any)
 			.stop();
 
-		// Run simulation synchronously for 120 ticks
-		for (let i = 0; i < 120; i++) {
+		// Increase tick count for larger graphs
+		const tickCount = isLargeGraph ? 200 : 120;
+		for (let i = 0; i < tickCount; i++) {
 			simulation.tick();
 		}
 
