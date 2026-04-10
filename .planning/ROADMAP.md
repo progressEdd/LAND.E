@@ -15,7 +15,7 @@
 
 - [x] **Phase 00: Infrastructure** - Template prep, branch creation, root README index
 - [x] **Phase 01: Webapp UI** - Purpose-built story writer webapp replacing the marimo notebook
-- [ ] **Phase 02: Cross-Story Knowledge Graph** - Shared characters across stories, force-directed graph visualization
+- [x] **Phase 02: Cross-Story Knowledge Graph** - Shared characters across stories, force-directed graph visualization
 - [x] **Phase 03: Dashboard + Graph Rework** - Story dashboard home page, in-story character-to-paragraph graph edges
 
 ## Phase Details
@@ -82,7 +82,7 @@ Plans:
   - How to identify "same character" across stories? Manual linking? LLM matching?
   - Does the home page become the cross-story graph, or is it a separate view?
   - Need a "universe" concept to group stories?
-**Plans:** TBD
+**Plans:** 6/6 plans complete
 
 ### Phase 03: Dashboard + Graph Rework
 **Goal**: Replace the welcome placeholder with a story dashboard home page, and rework the node graph visualizer to draw edges from character nodes to the paragraphs where they appear.
@@ -116,5 +116,5 @@ Phases execute: 00 → 01 → 03 → 02 (Phase 03 before 02 because in-story edg
 |-------|--------|----------------|--------|-----------|
 | 00. Infrastructure | `00-infrastructure` | 1+ | Complete | 2026-02-13 |
 | 01. Webapp UI | `01-webapp-ui` | 16/16 | Complete | 2026-02-14 |
-| 02. Cross-Story Graph | `02-cross-story-graph` | 0/? | Planned | — |
+| 02. Cross-Story Graph | `02-cross-story-graph` | 6/6 | Complete   | 2026-04-10 |
 | 03. Dashboard + Graph Rework | `03-dashboard-graph-rework` | 6/6 | Complete | 2026-04-09 |
