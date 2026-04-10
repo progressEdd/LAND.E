@@ -1,19 +1,23 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide } from 'd3-force';
-	import type { StoryOverviewResponse, StoryOverviewStory, StoryOverviewCharacter } from '$lib/types';
+	import type { StoryOverviewResponse, StoryOverviewStory, StoryOverviewCharacter, StoryOverviewCanonicalCharacter } from '$lib/types';
 	import { api } from '$lib/api/rest';
 	import { storyState } from '$lib/stores/story.svelte';
+	import { characterState } from '$lib/stores/character.svelte';
 
 	// ---- Types ----
 	interface GraphNode {
 		id: string;
 		label: string;
-		type: 'story' | 'character';
+		type: 'story' | 'character' | 'linked_character';
 		x: number;
 		y: number;
 		fx?: number | null;
 		fy?: number | null;
+		canonical_id?: string;
+		story_count?: number;
+		color?: string;
 	}
 
 	interface GraphLink {
@@ -24,9 +28,12 @@
 	interface SimNode {
 		id: string;
 		label: string;
-		type: 'story' | 'character';
+		type: 'story' | 'character' | 'linked_character';
 		x: number;
 		y: number;
+		canonical_id?: string;
+		story_count?: number;
+		color?: string;
 	}
 
 	interface SimLink {
@@ -45,8 +52,9 @@
 		'#60a5fa', '#a78bfa', '#f472b6', '#e879f9', '#94a3b8',
 	];
 
-	function getCharColor(index: number): string {
-		return PALETTE[index % PALETTE.length];
+	let colorIdx = 0;
+	function nextColor(): string {
+		return PALETTE[colorIdx++ % PALETTE.length];
 	}
 
 	async function loadGraph(): Promise<void> {
@@ -64,11 +72,13 @@
 	}
 
 	function buildGraph(data: StoryOverviewResponse): void {
-		if (data.stories.length === 0 && data.characters.length === 0) {
+		if (data.stories.length === 0 && data.characters.length === 0 && (data.canonical_characters ?? []).length === 0) {
 			nodes = [];
 			links = [];
 			return;
 		}
+
+		colorIdx = 0;
 
 		// Create nodes
 		const graphNodes: SimNode[] = [
@@ -79,18 +89,43 @@
 				x: 0,
 				y: 0,
 			})),
-			...data.characters.map((c) => ({
+		];
+
+		const graphLinks: SimLink[] = [];
+
+		// Process canonical (linked) characters FIRST — they get colors first
+		for (const cc of data.canonical_characters ?? []) {
+			const color = nextColor();
+			graphNodes.push({
+				id: `canonical:${cc.id}`,
+				label: cc.canonical_name,
+				type: 'linked_character',
+				x: 0,
+				y: 0,
+				canonical_id: cc.id,
+				story_count: cc.story_ids.length,
+				color,
+			});
+			// Links to all stories
+			for (const sid of cc.story_ids) {
+				graphLinks.push({
+					source: `canonical:${cc.id}`,
+					target: sid,
+				});
+			}
+		}
+
+		// Process remaining (unlinked) raw characters
+		for (const c of data.characters) {
+			const color = nextColor();
+			graphNodes.push({
 				id: `char:${c.name}`,
 				label: c.name,
 				type: 'character' as const,
 				x: 0,
 				y: 0,
-			})),
-		];
-
-		// Create links from character→story
-		const graphLinks: SimLink[] = [];
-		for (const c of data.characters) {
+				color,
+			});
 			for (const sid of c.story_ids) {
 				graphLinks.push({
 					source: `char:${c.name}`,
@@ -99,15 +134,24 @@
 			}
 		}
 
-		// Run force simulation
+		// Run force simulation with adjusted parameters
 		const simulation = forceSimulation<SimNode>(graphNodes as any)
-			.force('link', forceLink<SimNode, SimLink>(graphLinks as any).id((d: any) => d.id).distance(100))
+			.force('link', forceLink<SimNode, SimLink>(graphLinks as any)
+				.id((d: any) => d.id)
+				.distance((d: any) => {
+					const src = d.source as SimNode | string;
+					const srcType = typeof src === 'string' ? '' : src.type;
+					return srcType === 'linked_character' ? 80 : 100;
+				})
+			)
 			.force('charge', forceManyBody().strength(-250))
 			.force('center', forceCenter(300, 150))
-			.force('collide', forceCollide<SimNode>().radius(60) as any)
+			.force('collide', forceCollide<SimNode>().radius((d: any) => {
+				return d.type === 'linked_character' ? 70 : 60;
+			}) as any)
 			.stop();
 
-		// Run simulation synchronously for 120 ticks (no animation needed)
+		// Run simulation synchronously for 120 ticks
 		for (let i = 0; i < 120; i++) {
 			simulation.tick();
 		}
@@ -119,6 +163,9 @@
 			type: n.type,
 			x: n.x ?? 0,
 			y: n.y ?? 0,
+			canonical_id: n.canonical_id,
+			story_count: n.story_count,
+			color: n.color,
 		}));
 
 		// Normalize positions to start from padding
@@ -142,7 +189,9 @@
 		return n ? { x: n.x, y: n.y } : { x: 0, y: 0 };
 	}
 
-
+	function getNodeColor(n: GraphNode): string {
+		return n.color ?? '#94a3b8';
+	}
 
 	// ---- Zoom & Pan state ----
 	let scale = $state(1);
@@ -190,8 +239,6 @@
 			panStartPanX = panX;
 			panStartPanY = panY;
 			panStartPointerId = e.pointerId;
-			// Do NOT capture pointer here — defer until drag is confirmed
-			// Otherwise click events on child SVG nodes get suppressed
 		}
 	}
 
@@ -201,7 +248,6 @@
 		const dy = e.clientY - panStartY;
 		if (!didDrag && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
 			didDrag = true;
-			// Now safe to capture — user is definitely dragging
 			graphEl?.setPointerCapture(panStartPointerId);
 		}
 		if (didDrag) {
@@ -215,11 +261,12 @@
 	}
 
 	function handleNodeClick(node: GraphNode): void {
-		if (didDrag) return; // Was a drag, not a click
+		if (didDrag) return;
 		if (node.type === 'story') {
 			storyState.setActiveStory(node.id);
+		} else if (node.type === 'linked_character' && node.canonical_id) {
+			characterState.selectCharacter(node.canonical_id);
 		}
-		// Character nodes don't navigate anywhere
 	}
 
 	function resetView(): void {
@@ -241,7 +288,7 @@
 			<p>Loading graph...</p>
 		</div>
 	{:else if nodes.length === 0}
-		<!-- No graph when no stories exist (D-13) -->
+		<!-- No graph when no stories exist -->
 	{:else}
 		<h4 class="graph-title">Story Universe</h4>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -285,11 +332,63 @@
 								<span class="story-node-title">{n.label}</span>
 							</div>
 						</foreignObject>
+					{:else if n.type === 'linked_character'}
+						<!-- Outer ring (double-ring effect) -->
+						<circle
+							cx={n.x} cy={n.y} r="34"
+							fill="none"
+							stroke={getNodeColor(n)}
+							stroke-width="2"
+							opacity="0.4"
+							class="char-rect"
+						/>
+						<!-- Main circle -->
+						<circle
+							cx={n.x} cy={n.y} r="28"
+							fill={getNodeColor(n)}
+							class="char-rect linked-char"
+						/>
+						<!-- First letter label -->
+						<text
+							x={n.x} y={n.y + 1}
+							class="node-label char-graph-label linked-label"
+							text-anchor="middle"
+							dominant-baseline="middle"
+						>
+							{n.label.charAt(0).toUpperCase()}
+						</text>
+						<!-- Story count badge -->
+						{#if n.story_count && n.story_count > 1}
+							<circle
+								cx={n.x + 22} cy={n.y - 22} r="10"
+								fill="#4f46e5"
+								class="count-badge-bg"
+							/>
+							<text
+								x={n.x + 22} y={n.y - 21}
+								class="count-badge-text"
+								text-anchor="middle"
+								dominant-baseline="middle"
+							>
+								{n.story_count}
+							</text>
+						{/if}
+						<!-- Hover name -->
+						{#if hoveredNode === n.id}
+							<text
+								x={n.x} y={n.y + 44}
+								class="char-hover-name"
+								text-anchor="middle"
+								dominant-baseline="hanging"
+							>
+								{n.label.length > 18 ? n.label.slice(0, 17) + '\u2026' : n.label} ({n.story_count} stories)
+							</text>
+						{/if}
 					{:else}
-						{@const charIdx = nodes.filter((nn) => nn.type === 'character').indexOf(n)}
+						<!-- Regular (unlinked) character node -->
 						<circle
 							cx={n.x} cy={n.y} r="20"
-							fill={getCharColor(charIdx)}
+							fill={getNodeColor(n)}
 							class="char-rect"
 						/>
 						<text
@@ -436,6 +535,10 @@
 		stroke-width: 2;
 	}
 
+	.linked-char {
+		opacity: 0.9;
+	}
+
 	.graph-node:hover .char-rect {
 		opacity: 1;
 		stroke-width: 3;
@@ -454,10 +557,26 @@
 		font-weight: 700;
 	}
 
+	.linked-label {
+		font-size: 15px;
+	}
+
 	.char-hover-name {
 		fill: var(--text-primary, #e5e7eb);
 		font-size: 10px;
 		font-weight: 600;
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+		pointer-events: none;
+	}
+
+	.count-badge-bg {
+		pointer-events: none;
+	}
+
+	.count-badge-text {
+		fill: #ffffff;
+		font-size: 9px;
+		font-weight: 700;
 		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 		pointer-events: none;
 	}

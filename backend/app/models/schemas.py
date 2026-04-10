@@ -229,10 +229,18 @@ class StoryOverviewCharacter(BaseModel):
     story_ids: list[str] = Field(default_factory=list)
 
 
+class StoryOverviewCanonicalCharacter(BaseModel):
+    """A canonical (linked) character with cross-story presence."""
+    id: str
+    canonical_name: str
+    story_ids: list[str] = Field(default_factory=list)
+
+
 class StoryOverviewResponse(BaseModel):
     """Full overview response for the dashboard graph and cards."""
     stories: list[StoryOverviewStory] = Field(default_factory=list)
     characters: list[StoryOverviewCharacter] = Field(default_factory=list)
+    canonical_characters: list[StoryOverviewCanonicalCharacter] = Field(default_factory=list)
 
 
 # ---------- Cross-story character identity models ----------

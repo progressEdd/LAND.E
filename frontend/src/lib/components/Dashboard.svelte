@@ -2,7 +2,10 @@
 	import { onMount } from 'svelte';
 	import StoryCard from './StoryCard.svelte';
 	import DashboardGraph from './DashboardGraph.svelte';
+	import CharacterMatchPanel from './CharacterMatchPanel.svelte';
+	import CharacterProfilePanel from './CharacterProfilePanel.svelte';
 	import { storyState } from '$lib/stores/story.svelte';
+	import { characterState } from '$lib/stores/character.svelte';
 	import { api } from '$lib/api/rest';
 	import type { StoryOverviewStory } from '$lib/types';
 
@@ -29,6 +32,8 @@
 
 	onMount(() => {
 		loadOverview();
+		characterState.loadCandidates();
+		characterState.loadCharacters();
 	});
 
 	async function feelingLucky(): Promise<void> {
@@ -144,7 +149,33 @@
 			{/if}
 
 			{#if overviewStories.length > 0}
-				<DashboardGraph />
+				<div class="graph-area">
+					<DashboardGraph />
+
+					<!-- Characters section -->
+					<div class="characters-bar">
+						<span class="characters-label">Characters</span>
+						<span class="characters-count">{characterState.canonicalCharacters.length} linked</span>
+						{#if characterState.candidates.length > 0}
+							<button class="btn btn-small review-matches-btn" onclick={() => (characterState.showMatchPanel = true)}>
+								Review Matches ({characterState.candidates.length})
+							</button>
+						{/if}
+					</div>
+
+					<!-- Character panels (overlay) -->
+					{#if characterState.showMatchPanel}
+						<div class="panel-overlay">
+							<CharacterMatchPanel />
+						</div>
+					{/if}
+
+					{#if characterState.showProfilePanel && characterState.selectedCharacter}
+						<div class="panel-overlay">
+							<CharacterProfilePanel />
+						</div>
+					{/if}
+				</div>
 			{/if}
 		</div>
 	{/if}
@@ -355,5 +386,49 @@
 		resize: vertical;
 		min-height: 70px;
 		font-family: inherit;
+	}
+
+	/* ---- Graph area with panels ---- */
+	.graph-area {
+		position: relative;
+	}
+
+	.characters-bar {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-top: 12px;
+		max-width: 1200px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	.characters-label {
+		font-size: 12px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--text-muted, #9ca3af);
+	}
+
+	.characters-count {
+		font-size: 11px;
+		color: var(--text-faint, #6b7280);
+	}
+
+	.review-matches-btn {
+		border-color: #6366f1;
+		color: #a5b4fc;
+	}
+
+	.review-matches-btn:hover {
+		background-color: rgba(99, 102, 241, 0.15);
+	}
+
+	.panel-overlay {
+		position: absolute;
+		top: 40px;
+		right: 0;
+		z-index: 10;
 	}
 </style>

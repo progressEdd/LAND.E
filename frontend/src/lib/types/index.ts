@@ -116,10 +116,18 @@ export interface StoryOverviewCharacter {
 	story_ids: string[];
 }
 
+// A canonical (linked) character with cross-story presence
+export interface StoryOverviewCanonicalCharacter {
+	id: string;
+	canonical_name: string;
+	story_ids: string[];
+}
+
 // Full overview response for dashboard
 export interface StoryOverviewResponse {
 	stories: StoryOverviewStory[];
 	characters: StoryOverviewCharacter[];
+	canonical_characters: StoryOverviewCanonicalCharacter[];
 }
 
 // ---------- Cross-story character identity types ----------

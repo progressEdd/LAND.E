@@ -16,6 +16,7 @@ from app.models.schemas import (
     NodeResponse,
     StoryAnalysis,
     StoryCreateRequest,
+    StoryOverviewCanonicalCharacter,
     StoryOverviewCharacter,
     StoryOverviewResponse,
     StoryOverviewStory,
@@ -256,12 +257,53 @@ async def stories_overview():
             for r in story_rows
         ]
 
+        # Filter raw characters that have confirmed/suggested aliases
+        aliased_rows = await db.execute_fetchall(
+            """SELECT raw_name, story_id FROM character_aliases
+               WHERE status IN ('confirmed', 'suggested')"""
+        )
+        aliased_pairs = {(r["raw_name"], r["story_id"]) for r in aliased_rows}
+
+        filtered_char_to_stories = {}
+        for name, sids in char_to_stories.items():
+            unaliased_sids = [sid for sid in sids if (name, sid) not in aliased_pairs]
+            if unaliased_sids:
+                filtered_char_to_stories[name] = unaliased_sids
+
+        # Fetch canonical characters with their linked story appearances
+        canonical_rows = await db.execute_fetchall(
+            """SELECT cc.id, cc.canonical_name, csa.story_id
+               FROM canonical_characters cc
+               JOIN character_story_appearances csa ON cc.id = csa.canonical_id
+               ORDER BY cc.canonical_name"""
+        )
+
+        canonical_map: dict[str, dict] = {}
+        for cr in canonical_rows:
+            cid = cr["id"]
+            if cid not in canonical_map:
+                canonical_map[cid] = {
+                    "id": cid,
+                    "canonical_name": cr["canonical_name"],
+                    "story_ids": [],
+                }
+            canonical_map[cid]["story_ids"].append(cr["story_id"])
+
         characters = [
             StoryOverviewCharacter(name=name, story_ids=sids)
-            for name, sids in sorted(char_to_stories.items())
+            for name, sids in sorted(filtered_char_to_stories.items())
         ]
 
-    return StoryOverviewResponse(stories=stories, characters=characters)
+        canonical_characters = [
+            StoryOverviewCanonicalCharacter(
+                id=data["id"],
+                canonical_name=data["canonical_name"],
+                story_ids=data["story_ids"],
+            )
+            for data in canonical_map.values()
+        ]
+
+    return StoryOverviewResponse(stories=stories, characters=characters, canonical_characters=canonical_characters)
 
 
 @router.get("/{story_id}", response_model=StoryResponse)
