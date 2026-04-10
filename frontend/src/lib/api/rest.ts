@@ -5,7 +5,13 @@ import type {
 	NodeType,
 	ProvenanceSource,
 	TreeResponse,
-	StoryOverviewResponse
+	StoryOverviewResponse,
+	CanonicalCharacter,
+	CanonicalCharacterSummary,
+	CharacterCandidateGroup,
+	LinkCharactersRequest,
+	SplitCharactersRequest,
+	UpdateCharacterRequest
 } from '$lib/types';
 
 /**
@@ -148,6 +154,54 @@ class ApiClient {
 		return this.request<{ success: boolean; message: string; elapsed: number }>('/api/llm/warmup', {
 			method: 'POST',
 			body: JSON.stringify({ model })
+		});
+	}
+
+	// ---------- Characters ----------
+
+	async getCharacterCandidates(): Promise<{ candidates: CharacterCandidateGroup[] }> {
+		return this.request<{ candidates: CharacterCandidateGroup[] }>('/api/characters/candidates');
+	}
+
+	async linkCharacters(request: LinkCharactersRequest): Promise<CanonicalCharacter> {
+		return this.request<CanonicalCharacter>('/api/characters/link', {
+			method: 'POST',
+			body: JSON.stringify(request)
+		});
+	}
+
+	async splitCharacter(canonicalId: string, request: SplitCharactersRequest): Promise<{ original: CanonicalCharacterSummary; new: CanonicalCharacterSummary }> {
+		return this.request<{ original: CanonicalCharacterSummary; new: CanonicalCharacterSummary }>(`/api/characters/${canonicalId}/split`, {
+			method: 'POST',
+			body: JSON.stringify(request)
+		});
+	}
+
+	async listCharacters(): Promise<CanonicalCharacterSummary[]> {
+		return this.request<CanonicalCharacterSummary[]>('/api/characters');
+	}
+
+	async getCharacter(canonicalId: string): Promise<CanonicalCharacter> {
+		return this.request<CanonicalCharacter>(`/api/characters/${canonicalId}`);
+	}
+
+	async updateCharacter(canonicalId: string, request: UpdateCharacterRequest): Promise<CanonicalCharacter> {
+		return this.request<CanonicalCharacter>(`/api/characters/${canonicalId}`, {
+			method: 'PATCH',
+			body: JSON.stringify(request)
+		});
+	}
+
+	async linkMention(canonicalId: string, rawName: string, storyId: string): Promise<CanonicalCharacter> {
+		return this.request<CanonicalCharacter>(`/api/characters/${canonicalId}/link-mention`, {
+			method: 'POST',
+			body: JSON.stringify({ raw_name: rawName, story_id: storyId, canonical_id: canonicalId })
+		});
+	}
+
+	async deleteCharacter(canonicalId: string): Promise<void> {
+		return this.request<void>(`/api/characters/${canonicalId}`, {
+			method: 'DELETE'
 		});
 	}
 }

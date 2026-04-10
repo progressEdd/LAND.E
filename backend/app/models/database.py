@@ -1,6 +1,7 @@
 """SQLite schema creation and connection management with aiosqlite."""
 
 import os
+import re
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -42,3 +43,21 @@ async def get_db():
         yield db
     finally:
         await db.close()
+
+
+def normalize_character_name(raw_name: str) -> str:
+    """Extract canonical name from LLM-generated descriptive string.
+
+    Examples:
+        "Chloe Miller (teenage daughter)" -> "Chloe Miller"
+        "The Weathervane (an inanimate object with unusual agency)" -> "Weathervane"
+        "Dr. Sarah Chen" -> "Dr. Sarah Chen"
+        "A mysterious stranger" -> "mysterious stranger"
+    """
+    # Remove parenthetical descriptions
+    name = re.sub(r'\s*\([^)]*\)', '', raw_name).strip()
+    # Remove leading articles
+    name = re.sub(r'^(The|A|An)\s+', '', name, flags=re.IGNORECASE).strip()
+    # Collapse whitespace
+    name = re.sub(r'\s+', ' ', name)
+    return name
