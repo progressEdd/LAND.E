@@ -233,3 +233,93 @@ class StoryOverviewResponse(BaseModel):
     """Full overview response for the dashboard graph and cards."""
     stories: list[StoryOverviewStory] = Field(default_factory=list)
     characters: list[StoryOverviewCharacter] = Field(default_factory=list)
+
+
+# ---------- Cross-story character identity models ----------
+
+
+class CharacterAliasResponse(BaseModel):
+    """Response model for a character alias (per-story name mapping)."""
+    id: str
+    canonical_id: str
+    story_id: str
+    raw_name: str
+    normalized_name: str
+    status: str = Field(..., description="One of: suggested, confirmed, split, rejected")
+    role_in_story: Optional[str] = None
+
+
+class CharacterAppearanceResponse(BaseModel):
+    """Response model for a canonical character's appearance in a story."""
+    story_id: str
+    story_title: str
+    role: Optional[str] = None
+    context: Optional[str] = None
+    arc_notes: Optional[str] = None
+
+
+class CanonicalCharacterResponse(BaseModel):
+    """Full response for a canonical character with aliases and appearances."""
+    id: str
+    canonical_name: str
+    description: Optional[str] = None
+    traits: list[str] = Field(default_factory=list)
+    arc_summary: Optional[str] = None
+    aliases: list[CharacterAliasResponse] = Field(default_factory=list)
+    appearances: list[CharacterAppearanceResponse] = Field(default_factory=list)
+    story_ids: list[str] = Field(default_factory=list)
+
+
+class CanonicalCharacterSummary(BaseModel):
+    """Summary of a canonical character for list views."""
+    id: str
+    canonical_name: str
+    story_count: int = 0
+    story_ids: list[str] = Field(default_factory=list)
+    raw_names: list[str] = Field(default_factory=list)
+
+
+class CharacterMentionCandidate(BaseModel):
+    """A single character mention found across stories."""
+    raw_name: str
+    story_id: str
+    story_title: str
+
+
+class CharacterCandidateGroup(BaseModel):
+    """A group of character mentions that may be the same canonical character."""
+    normalized_name: str
+    mentions: list[CharacterMentionCandidate] = Field(default_factory=list)
+
+
+class LinkMention(BaseModel):
+    """A reference to a character mention in a specific story."""
+    raw_name: str
+    story_id: str
+
+
+class LinkCharactersRequest(BaseModel):
+    """Request to link multiple character mentions as the same canonical character."""
+    canonical_name: str
+    mentions: list[LinkMention] = Field(..., min_length=2, description="At least 2 mentions to link")
+
+
+class SplitCharactersRequest(BaseModel):
+    """Request to split mentions from an existing canonical character into a new one."""
+    canonical_id: str
+    mentions_to_split: list[LinkMention] = Field(..., min_length=1, description="Mentions to move to a new canonical character")
+
+
+class UpdateCharacterRequest(BaseModel):
+    """Request to update a canonical character's profile."""
+    canonical_name: Optional[str] = None
+    description: Optional[str] = None
+    traits: Optional[list[str]] = None
+    arc_summary: Optional[str] = None
+
+
+class ManualLinkRequest(BaseModel):
+    """Request to manually link a character mention to an existing canonical character."""
+    raw_name: str
+    story_id: str
+    canonical_id: str

@@ -121,3 +121,79 @@ export interface StoryOverviewResponse {
 	stories: StoryOverviewStory[];
 	characters: StoryOverviewCharacter[];
 }
+
+// ---------- Cross-story character identity types ----------
+
+// A character alias mapping a per-story name to its canonical identity
+export interface CharacterAlias {
+	id: string;
+	canonical_id: string;
+	story_id: string;
+	raw_name: string;
+	normalized_name: string;
+	status: string;
+	role_in_story: string | null;
+}
+
+// A canonical character's appearance in a specific story
+export interface CharacterAppearance {
+	story_id: string;
+	story_title: string;
+	role: string | null;
+	context: string | null;
+	arc_notes: string | null;
+}
+
+// Full canonical character with aliases, appearances, and profile data
+export interface CanonicalCharacter {
+	id: string;
+	canonical_name: string;
+	description: string | null;
+	traits: string[];
+	arc_summary: string | null;
+	aliases: CharacterAlias[];
+	appearances: CharacterAppearance[];
+	story_ids: string[];
+}
+
+// Summary of a canonical character for list views
+export interface CanonicalCharacterSummary {
+	id: string;
+	canonical_name: string;
+	story_count: number;
+	story_ids: string[];
+	raw_names: string[];
+}
+
+// A single character mention candidate found across stories
+export interface CharacterMentionCandidate {
+	raw_name: string;
+	story_id: string;
+	story_title: string;
+}
+
+// A group of character mentions that may be the same canonical character
+export interface CharacterCandidateGroup {
+	normalized_name: string;
+	mentions: CharacterMentionCandidate[];
+}
+
+// Request to link multiple character mentions as the same canonical character
+export interface LinkCharactersRequest {
+	canonical_name: string;
+	mentions: { raw_name: string; story_id: string }[];
+}
+
+// Request to split mentions from an existing canonical character
+export interface SplitCharactersRequest {
+	canonical_id: string;
+	mentions_to_split: { raw_name: string; story_id: string }[];
+}
+
+// Request to update a canonical character's profile
+export interface UpdateCharacterRequest {
+	canonical_name?: string;
+	description?: string;
+	traits?: string[];
+	arc_summary?: string;
+}
