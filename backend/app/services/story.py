@@ -19,35 +19,21 @@ class CycleResult:
     analysis: StoryAnalysis
 
 
-def extract_characters(cast: list[str]) -> list[tuple[str, str | None]]:
+def extract_characters(cast: list) -> list[tuple[str, str | None]]:
     """Extract character names and roles from StoryAnalysis.cast entries.
 
-    Each cast entry is typically formatted as:
-        "Name — role/goal/conflict; ties."
+    With the structured CastMember model, the LLM already outputs clean
+    (name, role) pairs. This function just converts them to the format
+    expected by the character_mentions table.
 
     Returns deduplicated list of (character_name, role) tuples.
     """
     seen: set[str] = set()
     results: list[tuple[str, str | None]] = []
 
-    for entry in cast:
-        entry = entry.strip()
-        if not entry:
-            continue
-
-        # Try splitting on em dash
-        if " — " in entry:
-            name, role = entry.split(" — ", 1)
-            name = name.strip()
-            role = role.strip() or None
-        elif " - " in entry:
-            # Fallback: regular dash
-            name, role = entry.split(" - ", 1)
-            name = name.strip()
-            role = role.strip() or None
-        else:
-            name = entry
-            role = None
+    for member in cast:
+        name = member.name.strip()
+        role = member.role.strip() or None
 
         # Deduplicate by normalized name (case-insensitive)
         name_lower = name.lower()

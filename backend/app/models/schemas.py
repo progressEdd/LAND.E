@@ -56,6 +56,19 @@ class StoryContinue(BaseModel):
     )
 
 
+class CastMember(BaseModel):
+    """A single character extracted from the story text."""
+
+    name: str = Field(
+        ...,
+        description="Character name only. Just the name — e.g. 'Elias Thorne', 'Chloe Miller', 'The Stranger'. No role, no description, no parenthetical.",
+    )
+    role: str = Field(
+        default="",
+        description="Brief role/goal/conflict — e.g. 'Perfectionist chef running a high-end fusion truck, struggling to stay afloat.'",
+    )
+
+
 class StoryAnalysis(BaseModel):
     """
     You are a _story analyst. Produce a succinct "_story-So-Far" handoff so another model can write
@@ -76,9 +89,9 @@ class StoryAnalysis(BaseModel):
     """
 
     logline: str
-    cast: list[str] = Field(
+    cast: list[CastMember] = Field(
         default_factory=list,
-        description="Bullets: Name — role/goal/conflict; ties.",
+        description="Characters appearing in the story so far. Each entry has a name and a brief role/goal.",
     )
     world_rules: list[str] = Field(
         default_factory=list,

@@ -55,10 +55,16 @@ export interface LLMConfig {
 	api_key?: string;
 }
 
+// A single character in the story analysis cast
+export interface CastMember {
+	name: string;
+	role: string;
+}
+
 // Structured story analysis from LLM
 export interface StoryAnalysis {
 	logline: string;
-	cast: string[];
+	cast: CastMember[];
 	world_rules: string[];
 	pov_tense_tone: string;
 	timeline: string[];

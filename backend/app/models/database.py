@@ -53,7 +53,12 @@ def normalize_character_name(raw_name: str) -> str:
         "The Weathervane (an inanimate object with unusual agency)" -> "Weathervane"
         "Dr. Sarah Chen" -> "Dr. Sarah Chen"
         "A mysterious stranger" -> "mysterious stranger"
+        "Elias: A perfectionist chef running a high-end fusion truck" -> "Elias"
     """
+    # Strip everything after ": " (safety net for "Name: Description" format)
+    colon_match = re.match(r'^([^:]+):\s', raw_name)
+    if colon_match:
+        raw_name = colon_match.group(1).strip()
     # Remove parenthetical descriptions
     name = re.sub(r'\s*\([^)]*\)', '', raw_name).strip()
     # Remove leading articles

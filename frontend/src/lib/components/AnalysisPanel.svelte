@@ -24,8 +24,13 @@
 			{#if analysis.cast.length > 0}
 				<AnalysisCard title="Cast">
 					<ul>
-						{#each analysis.cast as character}
-							<li>{@html character.replace(/^(.+?)(\s*[-\u2014\u2013])/, '<strong>$1</strong>$2')}</li>
+						{#each analysis.cast as member}
+							<li>
+								<strong>{member.name}</strong>
+								{#if member.role}
+									 — {member.role}
+								{/if}
+							</li>
 						{/each}
 					</ul>
 				</AnalysisCard>

@@ -5,7 +5,7 @@ import uuid
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.models.database import get_db, normalize_character_name
 from app.models.schemas import (
