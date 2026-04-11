@@ -143,7 +143,7 @@
 		const nodeCount = graphNodes.length;
 		const isLargeGraph = nodeCount > 15;
 		const baseLinkDistance = isLargeGraph ? 120 : 100;
-		const chargeStrength = isLargeGraph ? -350 : -250;
+		const chargeStrength = isLargeGraph ? -200 : -120;
 
 		// Run force simulation with adjusted parameters
 		const simulation = forceSimulation<SimNode>(graphNodes as any)
@@ -151,7 +151,7 @@
 				.id((d: any) => d.id)
 				.distance((d: any) => {
 					const sourceId = typeof d.source === 'object' ? d.source.id : d.source;
-					return sourceId.startsWith('canonical:') ? 80 : baseLinkDistance;
+				return sourceId.startsWith('canonical:') ? baseLinkDistance * 0.8 : baseLinkDistance;
 				})
 			)
 			.force('charge', forceManyBody().strength((d: any) => {
@@ -161,8 +161,10 @@
 			}))
 			.force('center', forceCenter(isLargeGraph ? 400 : 300, isLargeGraph ? 200 : 150))
 			.force('collide', forceCollide<SimNode>().radius((d: any) => {
-				return d.type === 'linked_character' ? 70 : 60;
-			}) as any)
+				if (d.type === 'story') return 95;  // story card is 180×80, so diagonal ≈ 99
+				if (d.type === 'linked_character') return 40;  // outer ring r=34
+				return 28;
+			}).strength(0.9) as any)
 			.stop();
 
 		// Increase tick count for larger graphs
@@ -183,14 +185,40 @@
 			color: n.color,
 		}));
 
-		// Normalize positions to start from padding
-		const PAD = 40;
+		// Offset positions to start from (50, 50)
+		const PAD = 50;
 		const minX = Math.min(...positioned.map((n) => n.x));
 		const minY = Math.min(...positioned.map((n) => n.y));
 		for (const n of positioned) {
-			n.x = n.x - minX + PAD + 30;
-			n.y = n.y - minY + PAD + 30;
+			n.x = n.x - minX + PAD;
+			n.y = n.y - minY + PAD;
 		}
+
+		// Auto-fit: scale so the graph fills ~70% of the viewport (comfortable zoom,
+		// some characters may flow off-screen — user can pan to explore)
+		const maxX = Math.max(...positioned.map((n) => n.x));
+		const maxY = Math.max(...positioned.map((n) => n.y));
+		const graphW = maxX + PAD;
+		const graphH = maxY + PAD;
+
+		const vpW = 800;
+		const vpH = 500;
+
+		const fitScaleX = vpW / graphW;
+		const fitScaleY = vpH / graphH;
+		// Use 0.7 of the full fit — intentionally clips edges for a comfortable zoom
+		const rawFit = Math.min(fitScaleX, fitScaleY, 1.0);
+		autoFitScale = Math.min(rawFit / 0.7, 1.0);
+
+		// Center the graph
+		const scaledW = graphW * autoFitScale;
+		const scaledH = graphH * autoFitScale;
+		autoFitPanX = (vpW - scaledW) / 2;
+		autoFitPanY = (vpH - scaledH) / 2;
+
+		scale = autoFitScale;
+		panX = autoFitPanX;
+		panY = autoFitPanY;
 
 		nodes = positioned;
 		links = graphLinks.map((l) => ({
@@ -212,6 +240,9 @@
 	let scale = $state(1);
 	let panX = $state(0);
 	let panY = $state(0);
+	let autoFitScale = 1;
+	let autoFitPanX = 0;
+	let autoFitPanY = 0;
 	let isPanning = $state(false);
 	let panStartX = $state(0);
 	let panStartY = $state(0);
@@ -276,7 +307,7 @@
 			await api.linkMention(canonicalId, details.rawName, details.storyIds[0]);
 			activeMenuNodeId = null;
 			showLinkDropdown = false;
-			await characterState.loadCandidates();
+			await Promise.all([characterState.loadCandidates(), characterState.loadCharacters()]);
 			loadGraph();
 			refreshAfterGraphOp?.();
 		} catch (e) {
@@ -364,9 +395,9 @@
 	}
 
 	function resetView(): void {
-		scale = 1;
-		panX = 0;
-		panY = 0;
+		scale = autoFitScale;
+		panX = autoFitPanX;
+		panY = autoFitPanY;
 	}
 
 	// Load on mount
@@ -398,7 +429,7 @@
 			onpointerleave={handlePointerUp}
 			class:viewport-panning={isPanning}
 		>
-			<svg class="graph-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
+			<svg class="graph-svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet">
 				<g transform="translate({panX}, {panY}) scale({scale})">
 			<!-- Links -->
 			{#each links as l, i}
@@ -522,14 +553,14 @@
 
 			<!-- Character context menu (for unlinked characters) -->
 			{#if activeMenuNodeId}
-				<div class="char-menu" style="left: {(activeMenuPos.x + panX) * scale}px; top: {(activeMenuPos.y + panY) * scale}px">
+				<div class="char-menu" style="left: {activeMenuPos.x * scale + panX}px; top: {activeMenuPos.y * scale + panY}px">
 					<button class="menu-item" onclick={() => (showLinkDropdown = true)}>
 						Link to existing character
 					</button>
 					{#if showLinkDropdown}
 						<div class="link-dropdown">
 							{#if characterState.canonicalCharacters.length === 0}
-								<div class="dropdown-empty">No existing characters</div>
+								<div class="dropdown-empty">No existing characters — use "Create as new" first</div>
 							{:else}
 								{#each characterState.canonicalCharacters as cc}
 									<button class="dropdown-item" onclick={() => linkToExisting(cc.id)}>
@@ -538,6 +569,9 @@
 								{/each}
 							{/if}
 						</div>
+					{/if}
+					{#if characterState.error}
+						<div class="menu-error">{characterState.error}</div>
 					{/if}
 					<button class="menu-item" onclick={createAsNew}>
 						Create as new character
@@ -821,5 +855,12 @@
 		padding: 8px 12px;
 		font-size: 12px;
 		color: var(--text-faint, #6b7280);
+	}
+
+	.menu-error {
+		padding: 8px 12px;
+		font-size: 12px;
+		color: #ef4444;
+		background: rgba(239, 68, 68, 0.1);
 	}
 </style>
