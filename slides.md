@@ -655,14 +655,15 @@ style: |
 ---
 
 <!-- _class: fill-media -->
-
 # 
-
 <div class="media-wrap">
-  <img src="00-supporting-files/images/slides/20260427090730.png" />
+  <video autoplay muted loop playsinline>
+    <source src="00-supporting-files/images/slides/Im-Troy-Mcclure.mp4" type="video/mp4" />
+  </video>
 </div>
 
 --- 
+
 <!-- _class: fill-media -->
 
 <div class="media-wrap">
@@ -762,7 +763,7 @@ style: |
 
 <!-- _class: fill-media -->
 
-## Disclaimer
+## 
 
 <div class="media-wrap">
   <video autoplay muted loop playsinline>
@@ -773,7 +774,6 @@ style: |
 ---
 <!-- _class: fill-media -->
 
-# My Vibecoding Journey
 <div class="media-wrap">
   <img src="00-supporting-files/images/slides/Evolution.png" />
 </div>
