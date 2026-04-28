@@ -6,7 +6,6 @@
 - I wanted to improve their prompting and make a demo ui
 
 # Who am I?
-- Edd Tang, based in Chicago, a AI Engineer in AI&D
 - I have been exploring local llms in my free time
 
 # Demo
