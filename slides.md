@@ -856,3 +856,6 @@ style: |
 # Summary
 - You got exposed to an app I vibecoded
 - You learned about my vibecoding setup and workflow
+
+---
+# Thanks!
