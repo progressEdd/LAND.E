@@ -853,6 +853,16 @@ style: |
 </div>
 
 ---
+<!-- _class: fill-media -->
+
+# 
+<div class="media-wrap">
+  <video autoplay muted loop playsinline>
+    <source src="00-supporting-files/images/slides/yu-gi-oh-yugi-muto.mp4" type="video/mp4" />
+  </video>
+</div>
+
+---
 # Summary
 - You got exposed to an app I vibecoded
 - You learned about my vibecoding setup and workflow
