@@ -5,7 +5,8 @@ export type WSClientMessage =
 	| { type: 'generate'; story_id: string; node_id: string; model: string; seed?: string }
 	| { type: 'cancel' }
 	| { type: 'accept'; node_id: string; content: string; provenance_spans: ProvenanceSpanData[] }
-	| { type: 'reject'; node_id: string };
+	| { type: 'reject'; node_id: string }
+	| { type: 'ping' };
 
 // Message types received from server
 export type WSServerMessage =
@@ -15,7 +16,8 @@ export type WSServerMessage =
 	| { type: 'cancelled'; node_id: string }
 	| { type: 'accepted'; node_id: string }
 	| { type: 'rejected'; node_id: string }
-	| { type: 'error'; message: string };
+	| { type: 'error'; message: string }
+	| { type: 'pong' };
 
 export interface ProvenanceSpanData {
 	start_offset: number;
@@ -33,6 +35,10 @@ class WebSocketClient {
 	private onMessage: ((msg: WSServerMessage) => void) | null = null;
 	private _connectionState: ConnectionState = 'disconnected';
 	private onConnectionChange: ((state: ConnectionState) => void) | null = null;
+	private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+	private pongTimeout: ReturnType<typeof setTimeout> | null = null;
+	private heartbeatIntervalMs = 25000;
+	private pongTimeoutMs = 10000;
 
 	get connectionState(): ConnectionState {
 		return this._connectionState;
@@ -65,11 +71,17 @@ class WebSocketClient {
 		this.ws.onopen = () => {
 			this.reconnectAttempts = 0;
 			this.setConnectionState('connected');
+			this.startHeartbeat();
 		};
 
 		this.ws.onmessage = (event) => {
 			try {
 				const msg: WSServerMessage = JSON.parse(event.data);
+				if (msg.type === 'pong') {
+					this.stopHeartbeat();
+					this.startHeartbeat();
+					return;
+				}
 				this.onMessage?.(msg);
 			} catch {
 				console.error('Failed to parse WebSocket message:', event.data);
@@ -77,6 +89,7 @@ class WebSocketClient {
 		};
 
 		this.ws.onclose = () => {
+			this.stopHeartbeat();
 			this.setConnectionState('disconnected');
 			this._attemptReconnect();
 		};
@@ -100,6 +113,26 @@ class WebSocketClient {
 		}, delay);
 	}
 
+	reconnect(): void {
+		// Stop any existing heartbeat
+		this.stopHeartbeat();
+		// Clear any pending reconnect timer
+		if (this.reconnectTimer) {
+			clearTimeout(this.reconnectTimer);
+			this.reconnectTimer = null;
+		}
+		// Close existing socket if any
+		this.ws?.close();
+		this.ws = null;
+		// Reset attempts and connect fresh
+		this.reconnectAttempts = 0;
+		this._connect();
+	}
+
+	resetReconnectAttempts(): void {
+		this.reconnectAttempts = 0;
+	}
+
 	send(msg: WSClientMessage): void {
 		if (this.ws?.readyState !== WebSocket.OPEN) {
 			console.error('WebSocket not connected');
@@ -108,7 +141,31 @@ class WebSocketClient {
 		this.ws.send(JSON.stringify(msg));
 	}
 
+	private startHeartbeat(): void {
+		this.stopHeartbeat();
+		this.heartbeatInterval = setInterval(() => {
+			if (this.ws?.readyState === WebSocket.OPEN) {
+				this.send({ type: 'ping' });
+				this.pongTimeout = setTimeout(() => {
+					this.ws?.close();
+				}, this.pongTimeoutMs);
+			}
+		}, this.heartbeatIntervalMs);
+	}
+
+	private stopHeartbeat(): void {
+		if (this.heartbeatInterval) {
+			clearInterval(this.heartbeatInterval);
+			this.heartbeatInterval = null;
+		}
+		if (this.pongTimeout) {
+			clearTimeout(this.pongTimeout);
+			this.pongTimeout = null;
+		}
+	}
+
 	disconnect(): void {
+		this.stopHeartbeat();
 		if (this.reconnectTimer) {
 			clearTimeout(this.reconnectTimer);
 			this.reconnectTimer = null;
