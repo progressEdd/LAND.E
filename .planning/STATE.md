@@ -1,44 +1,42 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: completed
-stopped_at: Phase 02 context gathered
-last_updated: "2026-04-10T04:40:29.282Z"
-last_activity: 2026-04-10
+milestone: v1.1
+milestone_name: UI Fixes & Story Management
+status: ready
+last_updated: "2026-04-28T21:00:00.000Z"
+last_activity: 2026-04-28
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 29
-  completed_plans: 29
-  percent: 79
+  total_phases: 2
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-09)
+See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** Every experiment/feature branch is self-documenting from creation — branching, worktree setup, README population, and project naming happen automatically so you can start building immediately.
-**Current focus:** Phase 02 (Cross-Story Knowledge Graph) — context gathered, ready for research and planning.
+**Current focus:** v1.1 — UI fixes and story management (delete button, connection bug fix).
 
 ## Current Position
 
-Phase: 03 of 4 (dashboard graph rework)
-Plan: 6 of 6
-Status: Milestone complete
-Last activity: 2026-04-10
+Phase: 04 (not started)
+Plan: -
+Status: Ready
+Last activity: 2026-04-28
 
-Progress: [████████░░] 79%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 23 (1 + 1 + 16 + 6)
-- Phase 03 execution: inline sequential, 3 waves, all TypeScript checks passed
-- All v1 + dashboard/graph requirements delivered
+- v1.0: 23 plans completed across 4 phases
+- v1.1: 0 plans completed
 
 **By Phase:**
 
@@ -46,42 +44,26 @@ Progress: [████████░░] 79%
 |-------|-------|--------|-----------|
 | 00. Infrastructure | 1+ | Complete | 2026-02-13 |
 | 01. Webapp UI | 16/16 | Complete | 2026-02-14 |
+| 02. Cross-Story Graph | 6/6 | Complete | 2026-04-10 |
 | 03. Dashboard + Graph Rework | 6/6 | Complete | 2026-04-09 |
-| 02. Cross-Story Graph | 0/? | Planned | — |
+| 04. Story Deletion | 0/1 | Ready | — |
+| 05. Connection Fix | 0/1 | Ready | — |
 
 ## Accumulated Context
 
 ### Decisions
 
-Recent decisions affecting current and future work:
+All prior decisions carry forward. New decisions for v1.1:
 
-- [Roadmap]: 4 phases — Template Prep, Branch Creation, Root README Index, Webapp UI
-- [02-01]: FastAPI lifespan context manager (not deprecated `on_event('startup')`)
-- [02-01]: Preserved schema docstrings as LLM system prompts
-- [02-01]: `asyncio.to_thread()` wraps synchronous OpenAI SDK calls
-- [02-02]: Svelte 5 runes class pattern for state management (ThemeState, SettingsState singletons)
-- [02-02]: CSS custom properties for theming instead of Tailwind dark: prefix
-- [02-03]: TypeScript getter properties for EditorState instead of `$derived()`
-- [02-03]: Provenance mark renders via inline style attribute (survives copy/paste)
-- [02-04]: LLM config as module-level variable (single-user app, no DB persistence)
-- [02-05]: `run_cycle()` returns full result then streams char-by-char with 10ms delay
-- [02-05]: Model name sent in generate WebSocket message from frontend
-- [02-09]: SQLite adjacency list for story tree with `active_path` JSON array
-- [02-10]: d3-hierarchy for SVG tree layout computation
-- [02-15]: Seed-guided generation — clickable seed nodes inject directional hints
-- [02-16]: Per-node seed persistence, theme-aware seed colors, SVG layering fix
-- [03-01]: Overview endpoint registered before /{story_id} to avoid route conflict
-- [03-02]: No auto-select of first story on mount — user lands on dashboard
-- [03-05]: Character edges appear on hover only, dashed style to distinguish from tree edges
-- [03-06]: d3-force for dashboard graph, synchronous 120 ticks (no animation)
+(none yet)
 
 ### Pending Todos
 
-- [ ] Redesign graph visualizer with yfiles-style layout switcher — [todo](.planning/todos/pending/2026-04-11-redesign-graph-visualizer-yfiles-layout-switcher.md)
+- [x] ~~Redesign graph visualizer with yfiles-style layout switcher~~ — removed from scope
 
 ### Blockers/Concerns
 
-None — all phases delivered.
+None.
 
 ### Potential Next Steps (v2 / unplanned)
 
@@ -96,16 +78,16 @@ None — all phases delivered.
 
 ## Session Continuity
 
-Last session: 2026-04-10
-Stopped at: Phase 02 context gathered
-Resume file: .planning/phases/02-cross-story-graph/02-CONTEXT.md
+Last session: 2026-04-28
+Stopped at: Milestone v1.1 initialized
+Resume file: .planning/ROADMAP.md
 
 ## Worktree Status
 
 Active worktrees:
 
-- `00-experiments` — Base Python environment
 - `webapp-ui` — Primary application (FastAPI + SvelteKit)
+- `00-experiments` — Base Python environment
 - `demo-marimo-app` — Legacy marimo prototype
 - `experiments-with-models` — LLM model testing
 - `source` — Exploration notebooks
@@ -114,4 +96,4 @@ Active worktrees:
 
 ---
 
-*Updated: 2026-04-09*
+*Updated: 2026-04-28*

@@ -1,78 +1,46 @@
-# Requirements: Project Template Workflow
+# Requirements: LAND.E v1.1 — UI Fixes & Story Management
 
-**Defined:** 2026-02-13
-**Core Value:** Every experiment/feature branch is self-documenting from creation — GSD handles branching, worktree setup, README population, and project naming automatically.
+**Defined:** 2026-04-28
+**Core Value:** Fix broken connection indicator and add story deletion capability — polish and completeness for the existing webapp.
 
-## v1 Requirements
+## v1.1 Requirements
 
-Requirements for initial release. Each maps to roadmap phases.
+### Story Deletion
 
-### Template Preparation
+- [ ] **DELE-01**: User can delete a story from the dashboard via a trash icon button with a confirmation dialog
+- [ ] **DELE-02**: Deleting a story cascades to remove all related records (nodes, provenance_spans, character_mentions, node_analyses, character_aliases, character_story_appearances)
 
-- [x] **TMPL-01**: README template exists on `00-experiments` branch with `$placeholder` variables
-- [x] **TMPL-02**: Template includes sections: project name, description, what it does, how to run, status
+### Connection Fix
 
-### Branch & Worktree Creation
+- [ ] **CONN-01**: Clicking "I'm Feeling Lucky" does not cause the WebSocket connection indicator to show "disconnected"
+- [ ] **CONN-02**: WebSocket connection state remains accurate after any REST API call
 
-- [x] **WKTR-01**: New branch created from `00-experiments` via atomic `git worktree add -b`
-- [x] **WKTR-02**: Worktree created in `02-worktrees/<branch-name>`
-- [x] **WKTR-03**: Pre-flight check detects duplicate branch or worktree before creation
+## Future Requirements
 
-### File Population
-
-- [x] **FILE-01**: README populated with project context (name, description, purpose)
-- [x] **FILE-02**: `pyproject.toml` `name` field updated to match project name
-- [x] **FILE-03**: `pyproject.toml` `description` field updated with project description
-- [x] **FILE-04**: `uv sync` runs after worktree creation to set up venv
-
-### Root README
-
-- [x] **ROOT-01**: Root repo README on main branch updated to list active experiments/branches
-
-## v2 Requirements
-
-### Workflow Enhancements
-
-- **WKFL-01**: Custom base branch option (not just `00-experiments`)
-- **WKFL-02**: Auto-generated table in root README with branch status
-- **WKFL-03**: Worktree cleanup/pruning commands
-- **WKFL-04**: Stale branch detection
-- **WKFL-05**: Branch naming convention enforcement
+(none identified)
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Shell script wrapper | GSD handles the workflow directly |
-| Shared venvs across worktrees | Each worktree gets its own venv from `uv sync` |
-| GUI/TUI for worktree management | CLI + GSD is sufficient |
-| Auto-merge between experiment branches | Experiments are independent |
-| `02-worktrees/README.md` updates | Serves manual users, not GSD workflow |
-| Template inheritance/composition | Over-engineering for a personal template |
+| Graph layout switcher (yfiles-style) | Current d3 layouts sufficient for needs |
+| Automated test suite | Planned for future milestone |
+| Error recovery for failed generations | Deferred |
+| Story import from markdown | Deferred |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TMPL-01 | Phase 1: Template Preparation | Done |
-| TMPL-02 | Phase 1: Template Preparation | Done |
-| WKTR-01 | Phase 2: Branch Creation Flow | Done |
-| WKTR-02 | Phase 2: Branch Creation Flow | Done |
-| WKTR-03 | Phase 2: Branch Creation Flow | Done |
-| FILE-01 | Phase 2: Branch Creation Flow | Done |
-| FILE-02 | Phase 2: Branch Creation Flow | Done |
-| FILE-03 | Phase 2: Branch Creation Flow | Done |
-| FILE-04 | Phase 2: Branch Creation Flow | Done |
-| ROOT-01 | Phase 3: Root README Index | Done |
+| DELE-01 | Phase 04: Story Deletion | — |
+| DELE-02 | Phase 04: Story Deletion | — |
+| CONN-01 | Phase 05: Connection Fix | — |
+| CONN-02 | Phase 05: Connection Fix | — |
 
 **Coverage:**
-- v1 requirements: 10 total
-- Mapped to phases: 10 ✓
+- v1.1 requirements: 4 total
+- Mapped to phases: 4 ✓
 - Unmapped: 0
-- **Completed: 10/10 ✓**
 
 ---
-*Requirements defined: 2026-02-13*
-*Last updated: 2026-02-13 — all v1 requirements delivered*
+*Requirements defined: 2026-04-28*

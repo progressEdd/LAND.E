@@ -10,6 +10,14 @@ A local-first AI story writing application that lets you generate, edit, and tra
 
 Write stories with AI assistance while maintaining full control over provenance — every piece of text is color-coded by source (AI-generated, user-written, user-edited, initial prompt). Branch your narrative, explore alternatives with the interactive node graph, and steer generation with seed-guided prompts. All running locally with your choice of LLM backend.
 
+## Current Milestone: v1.1 UI Fixes & Story Management
+
+**Goal:** Fix the broken connection indicator and add story deletion capability
+
+**Target features:**
+- Delete story button with cascade cleanup and confirmation dialog
+- Fix premise generation ("I'm Feeling Lucky") breaking WebSocket connection status
+
 ## Requirements
 
 ### Delivered (v1 — Template + Workflow)
@@ -39,12 +47,24 @@ Write stories with AI assistance while maintaining full control over provenance 
 - [x] Interactive SVG node graph with d3-hierarchy (character supernodes, branch switching, seed-guided generation)
 - [x] 4 LLM backends supported: LM Studio, Ollama, OpenAI, llama.cpp
 
+### Active (v1.1)
+
+- [ ] **DELE-01**: User can delete a story from the dashboard via a trash icon button with confirmation dialog
+- [ ] **DELE-02**: Deleting a story cascades to remove all related records (nodes, provenance_spans, character_mentions, node_analyses, character_aliases, character_story_appearances)
+- [ ] **CONN-01**: Clicking "I'm Feeling Lucky" does not cause the WebSocket connection indicator to show "disconnected"
+- [ ] **CONN-02**: WebSocket connection state remains accurate after any REST API call
+
+### Delivered (v1.0)
+
+(See MILESTONES.md for shipped features)
+
 ### Out of Scope
 
 - CI/CD pipelines — not needed for a personal local-first app
 - Publishing/packaging — local only, not distributed
 - Multi-user support — single-user application
 - Cloud deployment — runs entirely on the developer's machine
+- Graph layout switcher (yfiles-style) — deferred, current d3 layouts sufficient
 
 ## Context
 
@@ -109,5 +129,22 @@ webapp-ui/
 | Provenance via inline style attribute | Survives copy/paste between applications | ✓ Good — provenance travels with text |
 | Schema docstrings as LLM system prompts | Pydantic model docstrings are injected into structured output API calls | ✓ Good — single source of truth for LLM instructions |
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check - still the right priority?
+3. Audit Out of Scope - reasons still valid?
+4. Update Context with current state
+
 ---
-*Last updated: 2026-04-09*
+*Last updated: 2026-04-28*
