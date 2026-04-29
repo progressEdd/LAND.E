@@ -16,7 +16,7 @@
 - [x] **Phase 01: Webapp UI** - Purpose-built story writer webapp replacing the marimo notebook
 - [x] **Phase 02: Cross-Story Knowledge Graph** - Shared characters across stories, force-directed graph visualization
 - [x] **Phase 03: Dashboard + Graph Rework** - Story dashboard home page, in-story character-to-paragraph graph edges
-- [ ] **Phase 04: Story Deletion** - Delete story from dashboard with cascade cleanup
+- [x] **Phase 04: Story Deletion** - Delete story from dashboard with cascade cleanup
 - [ ] **Phase 05: Connection Fix** - Fix premise generation breaking WebSocket connection indicator
 
 ## Phase Details
@@ -58,5 +58,5 @@
 | 01. Webapp UI | `01-webapp-ui` | 16/16 | Complete | 2026-02-14 |
 | 02. Cross-Story Graph | `02-cross-story-graph` | 6/6 | Complete | 2026-04-10 |
 | 03. Dashboard + Graph Rework | `03-dashboard-graph-rework` | 6/6 | Complete | 2026-04-09 |
-| 04. Story Deletion | `04-story-deletion` | 0/1 | Ready | — |
+| 04. Story Deletion | `04-story-deletion` | 1/1 | Complete | 2026-04-29 |
 | 05. Connection Fix | `05-connection-fix` | 0/1 | Ready | — |
