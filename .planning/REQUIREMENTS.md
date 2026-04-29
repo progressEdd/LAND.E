@@ -7,13 +7,13 @@
 
 ### Story Deletion
 
-- [ ] **DELE-01**: User can delete a story from the dashboard via a trash icon button with a confirmation dialog
-- [ ] **DELE-02**: Deleting a story cascades to remove all related records (nodes, provenance_spans, character_mentions, node_analyses, character_aliases, character_story_appearances)
+- [x] **DELE-01**: User can delete a story from the dashboard via a trash icon button with a confirmation dialog
+- [x] **DELE-02**: Deleting a story cascades to remove all related records (nodes, provenance_spans, character_mentions, node_analyses, character_aliases, character_story_appearances)
 
 ### Connection Fix
 
-- [ ] **CONN-01**: Clicking "I'm Feeling Lucky" does not cause the WebSocket connection indicator to show "disconnected"
-- [ ] **CONN-02**: WebSocket connection state remains accurate after any REST API call
+- [x] **CONN-01**: Clicking "I'm Feeling Lucky" does not cause the WebSocket connection indicator to show "disconnected"
+- [x] **CONN-02**: WebSocket connection state remains accurate after any REST API call
 
 ## Future Requirements
 
@@ -32,10 +32,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DELE-01 | Phase 04: Story Deletion | — |
-| DELE-02 | Phase 04: Story Deletion | — |
-| CONN-01 | Phase 05: Connection Fix | — |
-| CONN-02 | Phase 05: Connection Fix | — |
+| DELE-01 | Phase 04: Story Deletion | ✓ Verified |
+| DELE-02 | Phase 04: Story Deletion | ✓ Verified |
+| CONN-01 | Phase 05: Connection Fix | ✓ Verified |
+| CONN-02 | Phase 05: Connection Fix | ✓ Verified |
 
 **Coverage:**
 - v1.1 requirements: 4 total

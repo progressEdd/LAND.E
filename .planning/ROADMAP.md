@@ -17,13 +17,13 @@
 - [x] **Phase 02: Cross-Story Knowledge Graph** - Shared characters across stories, force-directed graph visualization
 - [x] **Phase 03: Dashboard + Graph Rework** - Story dashboard home page, in-story character-to-paragraph graph edges
 - [x] **Phase 04: Story Deletion** - Delete story from dashboard with cascade cleanup
-- [ ] **Phase 05: Connection Fix** - Fix premise generation breaking WebSocket connection indicator
+- [x] **Phase 05: Connection Fix** - Fix premise generation breaking WebSocket connection indicator
 
 ## Phase Details
 
 ### Phase 04: Story Deletion
 **Goal**: Users can delete stories from the dashboard with full cascade cleanup
-**Status**: Ready
+**Status**: Complete
 **Folder**: `.planning/phases/04-story-deletion/`
 **Depends on**: Phase 01 (Webapp UI), Phase 03 (Dashboard)
 **Branch**: `webapp-ui` (existing)
@@ -38,7 +38,7 @@
 
 ### Phase 05: Connection Fix
 **Goal**: "I'm Feeling Lucky" no longer breaks the WebSocket connection indicator
-**Status**: Ready
+**Status**: Complete
 **Folder**: `.planning/phases/05-connection-fix/`
 **Depends on**: Phase 01 (Webapp UI)
 **Branch**: `webapp-ui` (existing)
@@ -59,4 +59,4 @@
 | 02. Cross-Story Graph | `02-cross-story-graph` | 6/6 | Complete | 2026-04-10 |
 | 03. Dashboard + Graph Rework | `03-dashboard-graph-rework` | 6/6 | Complete | 2026-04-09 |
 | 04. Story Deletion | `04-story-deletion` | 1/1 | Complete | 2026-04-29 |
-| 05. Connection Fix | `05-connection-fix` | 0/1 | Ready | — |
+| 05. Connection Fix | `05-connection-fix` | 1/1 | Complete | 2026-04-29 |
