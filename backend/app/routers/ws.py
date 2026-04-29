@@ -300,6 +300,9 @@ async def websocket_generate(websocket: WebSocket):
                     {"type": "rejected", "node_id": reject_node_id}
                 )
 
+            elif msg_type == "ping":
+                await websocket.send_json({"type": "pong"})
+
     except WebSocketDisconnect:
         pass
     except Exception:
