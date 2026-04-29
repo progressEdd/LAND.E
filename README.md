@@ -6,7 +6,7 @@ A local-first AI story writing application that lets you generate, edit, and tra
 
 ## Demo
 
-<video src="00-supporting-files/images/README/unsloth-gemma-4-26b-a4b-it-2026-04-29_00-04-33-ffshare_video_only.mp4" controls="controls" style="max-width:100%;"></video>
+https://github.com/user-attachments/assets/784af550-fcbf-4f2c-b9e0-1daa2aa9124c
 
 ## Background
 
