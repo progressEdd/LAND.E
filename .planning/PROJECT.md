@@ -81,7 +81,7 @@ webapp-ui/
 | `demo-marimo-app` | Legacy marimo notebook prototype |
 | `experiments-with-models` | LLM model testing notebooks |
 | `source` | Exploration notebooks |
-| `chinese-prompt` | Chinese language prompt experiments |
+| `chinese-prompt` | Chinese language prompt experiments `|
 | `presentation` | Presentation/outlining materials |
 
 ## Constraints
