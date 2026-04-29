@@ -86,6 +86,14 @@ class GenerationState {
 		});
 	}
 
+	reconnect(): void {
+		wsClient.reconnect();
+	}
+
+	resetReconnectAttempts(): void {
+		wsClient.resetReconnectAttempts();
+	}
+
 	private handleMessage(msg: WSServerMessage): void {
 		switch (msg.type) {
 			case 'token':
