@@ -123,13 +123,8 @@ All backends use the OpenAI-compatible API pattern. Select your backend in the S
 
 ## Screenshots
 
-| Early Prototype | Dashboard |
-|:---:|:---:|
-| ![early](00-supporting-files/images/README/20251226224448.png) | ![dashboard](00-supporting-files/images/README/20260429001253.png) |
-
-| Editor with Provenance | Node Graph |
-|:---:|:---:|
-| ![editor](00-supporting-files/images/README/20251230050850.png) | ![graph](00-supporting-files/images/README/20251230052537.png) |
+| Early Prototype | Current |
+![currrent](00-supporting-files/images/README/20260429001253.png)
 
 ## Project Structure
 
