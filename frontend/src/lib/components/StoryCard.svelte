@@ -205,8 +205,8 @@
 				</div>
 			{:else}
 				<div class="back-actions">
-					<h3 class="back-title">Delete "{story.title}"?</h3>
-					<button class="btn btn-destructive btn-small" onclick={handleDelete} aria-label="Delete story permanently">
+					<h3 class="back-title">Delete this story?</h3>
+					<button class="btn btn-destructive btn-small" onclick={handleDelete} aria-label="Delete story permanently" title={"Delete \"" + story.title + "\"?"}>
 						🗑 Delete
 					</button>
 					<button class="btn btn-small" onclick={handleEditClick} aria-label="Edit story title and premise">
@@ -369,13 +369,8 @@
 		border: 1px solid var(--border-color, #374151);
 		border-radius: 8px;
 		gap: 6px;
-	}
-
-	.back-actions {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-		align-items: stretch;
+		overflow: hidden;
+		min-height: 140px;
 	}
 
 	.back-title {
@@ -383,6 +378,13 @@
 		font-size: 15px;
 		font-weight: 600;
 		color: var(--text-primary, #e5e7eb);
+	}
+
+	.back-actions {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		align-items: stretch;
 	}
 
 	.back-cancel {
