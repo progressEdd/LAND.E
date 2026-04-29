@@ -34,6 +34,14 @@
 		}
 	});
 
+	// Reset reconnect counter when a story is activated
+	$effect(() => {
+		const id = storyState.activeStoryId;
+		if (id) {
+			generationState.resetReconnectAttempts();
+		}
+	});
+
 	onDestroy(() => {
 		generationState.disconnect();
 	});
