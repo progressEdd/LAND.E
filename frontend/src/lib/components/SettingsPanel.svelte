@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { LLMBackend } from '$lib/types';
 	import { settingsState } from '$lib/stores/settings.svelte';
+	import { generationState } from '$lib/stores/generation.svelte';
 	import { api } from '$lib/api/rest';
 
 	const backends: { value: LLMBackend; label: string }[] = [
@@ -92,6 +93,10 @@
 		} finally {
 			settingsState.isWarmingUp = false;
 		}
+	}
+
+	function handleReconnect() {
+		generationState.reconnect();
 	}
 </script>
 
@@ -198,6 +203,13 @@
 				{settingsState.warmupStatus}
 			</p>
 		{/if}
+	</div>
+
+	<!-- Reconnect button -->
+	<div class="field">
+		<button class="btn btn-primary" onclick={handleReconnect}>
+			Reconnect WebSocket
+		</button>
 	</div>
 </div>
 
