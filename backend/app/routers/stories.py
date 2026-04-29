@@ -24,6 +24,7 @@ from app.models.schemas import (
     SwitchPathRequest,
     TreeNodeResponse,
     TreeResponse,
+    UpdateStoryRequest,
 )
 from app.services.export import export_story_markdown
 
@@ -524,6 +525,40 @@ async def get_story_tree(story_id: str):
     )
 
 
+@router.patch("/{story_id}", response_model=StoryResponse)
+async def update_story(story_id: str, req: UpdateStoryRequest):
+    """Update a story's title and/or premise."""
+    if req.title is None and req.premise is None:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    async with get_db() as db:
+        story_rows = await db.execute_fetchall(
+            "SELECT * FROM stories WHERE id = ?", (story_id,)
+        )
+        if not story_rows:
+            raise HTTPException(status_code=404, detail="Story not found")
+
+        updates = []
+        params = []
+        if req.title is not None:
+            updates.append("title = ?")
+            params.append(req.title)
+        if req.premise is not None:
+            updates.append("premise = ?")
+            params.append(req.premise)
+        updates.append("updated_at = datetime('now')")
+        params.append(story_id)
+
+        await db.execute(
+            f"UPDATE stories SET {', '.join(updates)} WHERE id = ?",
+            tuple(params),
+        )
+        await db.commit()
+
+    # Re-fetch and return the updated story using the existing get_story logic
+    return await get_story(story_id)
+
+
 @router.delete("/{story_id}", status_code=204)
 async def delete_story(story_id: str):
     """Delete a story (cascading delete removes nodes and spans)."""
@@ -535,6 +570,14 @@ async def delete_story(story_id: str):
             raise HTTPException(status_code=404, detail="Story not found")
 
         await db.execute("DELETE FROM stories WHERE id = ?", (story_id,))
+
+        # Clean up orphaned canonical characters (no remaining aliases or appearances)
+        await db.execute(
+            """DELETE FROM canonical_characters
+               WHERE id NOT IN (SELECT canonical_id FROM character_aliases)
+               AND id NOT IN (SELECT canonical_id FROM character_story_appearances)"""
+        )
+
         await db.commit()
 
     return None

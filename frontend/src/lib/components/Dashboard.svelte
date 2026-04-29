@@ -18,6 +18,10 @@
 	let isLoadingPremise = $state(false);
 	let dashboardGraph = $state<ReturnType<typeof DashboardGraph> | null>(null);
 
+	// Batch mode state
+	let batchMode = $state(false);
+	let selectedStoryIds = $state<Set<string>>(new Set());
+
 	async function loadOverview(): Promise<void> {
 		isLoading = true;
 		try {
@@ -82,6 +86,68 @@
 		newTitle = '';
 		newPremise = '';
 	}
+
+	// ---- Batch mode functions ----
+
+	function enterBatchMode(): void {
+		batchMode = true;
+	}
+
+	function exitBatchMode(): void {
+		batchMode = false;
+		selectedStoryIds = new Set();
+	}
+
+	function toggleStorySelection(id: string): void {
+		const newSet = new Set(selectedStoryIds);
+		if (newSet.has(id)) {
+			newSet.delete(id);
+		} else {
+			newSet.add(id);
+		}
+		selectedStoryIds = newSet;
+	}
+
+	function handleStorySelect(id: string, multi: boolean): void {
+		if (multi) {
+			// Shift-click: enter batch mode
+			if (!batchMode) {
+				batchMode = true;
+			}
+		}
+		toggleStorySelection(id);
+	}
+
+	async function handleStoryDelete(id: string): Promise<void> {
+		await storyState.deleteStory(id);
+		storyState.clearActiveStory();
+		await loadOverview();
+	}
+
+	async function deleteSelectedStories(): Promise<void> {
+		for (const id of selectedStoryIds) {
+			await storyState.deleteStory(id);
+		}
+		storyState.clearActiveStory();
+		exitBatchMode();
+		await loadOverview();
+	}
+
+	async function handleStoryEdit(id: string, title: string, premise: string): Promise<void> {
+		await api.updateStory(id, title, premise);
+		await loadOverview();
+	}
+
+	// Escape key exits batch mode
+	$effect(() => {
+		if (batchMode) {
+			const handler = (e: KeyboardEvent) => {
+				if (e.key === 'Escape') exitBatchMode();
+			};
+			document.addEventListener('keydown', handler);
+			return () => document.removeEventListener('keydown', handler);
+		}
+	});
 </script>
 
 <div class="dashboard">
@@ -149,10 +215,29 @@
 				</div>
 			{/if}
 
+			{#if batchMode}
+				<div class="batch-toolbar">
+					<button class="btn btn-destructive btn-small" onclick={deleteSelectedStories} disabled={selectedStoryIds.size === 0}>
+						🗑 Delete Selected ({selectedStoryIds.size})
+					</button>
+					<button class="btn btn-small" onclick={exitBatchMode}>
+						Cancel Selection
+					</button>
+				</div>
+			{/if}
+
 			{#if overviewStories.length > 0}
 				<div class="story-grid">
 					{#each overviewStories as story (story.id)}
-						<StoryCard {story} />
+						<StoryCard
+							{story}
+							batchMode={batchMode}
+							selected={selectedStoryIds.has(story.id)}
+							onselect={handleStorySelect}
+							ondelete={handleStoryDelete}
+							onedit={handleStoryEdit}
+							onenterbatch={enterBatchMode}
+						/>
 					{/each}
 				</div>
 			{/if}
@@ -309,6 +394,30 @@
 		gap: 8px;
 	}
 
+	/* ---- Batch toolbar ---- */
+	.batch-toolbar {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 10px 16px;
+		margin-bottom: 16px;
+		background-color: var(--sidebar-bg, #111827);
+		border: 1px solid var(--border-color, #374151);
+		border-radius: 8px;
+		animation: slideIn 200ms ease-out;
+	}
+
+	@keyframes slideIn {
+		from {
+			opacity: 0;
+			transform: translateY(-8px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
 	/* ---- Shared button styles ---- */
 	.btn {
 		padding: 8px 16px;
@@ -372,6 +481,16 @@
 	.btn-lucky-inline:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+
+	.btn-destructive {
+		color: #ef4444;
+		border-color: #ef4444;
+	}
+
+	.btn-destructive:hover:not(:disabled) {
+		background-color: #ef4444;
+		color: #fff;
 	}
 
 	/* ---- Shared input styles ---- */

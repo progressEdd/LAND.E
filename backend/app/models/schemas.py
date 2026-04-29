@@ -344,3 +344,9 @@ class ManualLinkRequest(BaseModel):
     raw_name: str
     story_id: str
     canonical_id: str
+
+
+class UpdateStoryRequest(BaseModel):
+    """Request body for updating a story's title and/or premise."""
+    title: Optional[str] = None
+    premise: Optional[str] = None

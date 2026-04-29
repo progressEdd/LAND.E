@@ -73,6 +73,16 @@ class ApiClient {
 		});
 	}
 
+	async updateStory(id: string, title?: string, premise?: string): Promise<Story> {
+		const body: Record<string, string> = {};
+		if (title !== undefined) body.title = title;
+		if (premise !== undefined) body.premise = premise;
+		return this.request<Story>(`/api/stories/${id}`, {
+			method: 'PATCH',
+			body: JSON.stringify(body)
+		});
+	}
+
 	// ---------- Nodes ----------
 
 	async createNode(
