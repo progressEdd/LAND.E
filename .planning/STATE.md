@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 04 complete
-last_updated: "2026-04-29T03:18:18.666Z"
+status: completed
+stopped_at: Phase 05 execution complete
+last_updated: "2026-04-29T04:04:07.247Z"
 last_activity: 2026-04-29
 progress:
   total_phases: 2
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
   percent: 50
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** Every experiment/feature branch is self-documenting from creation — branching, worktree setup, README population, and project naming happen automatically so you can start building immediately.
-**Current focus:** v1.1 — Phase 04 complete. Story deletion with card flip UI and batch mode implemented. Phase 05 (Connection Fix) next.
+**Current focus:** v1.1 — Phase 05 execution complete. WebSocket heartbeat, reconnect, and UI controls implemented. Awaiting verification.
 
 ## Current Position
 
 Phase: 05 of 2 (connection fix)
-Plan: Not started
-Status: Ready to plan
+Plan: 1 of 1
+Status: Milestone complete
 Last activity: 2026-04-29
 
 Progress: [█████░░░░░] 50%
@@ -48,7 +48,7 @@ Progress: [█████░░░░░] 50%
 | 02. Cross-Story Graph | 6/6 | Complete | 2026-04-10 |
 | 03. Dashboard + Graph Rework | 6/6 | Complete | 2026-04-09 |
 | 04. Story Deletion | 1/1 | Complete | 2026-04-29 |
-| 05. Connection Fix | 0/1 | Ready | — |
+| 05. Connection Fix | 1/1 | Complete | 2026-04-29 |
 
 ## Accumulated Context
 
@@ -80,7 +80,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-04-29
-Stopped at: Phase 04 complete
+Stopped at: Phase 05 execution complete
 Resume file: .planning/ROADMAP.md
 
 ## Worktree Status
