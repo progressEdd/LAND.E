@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { generationState } from '$lib/stores/generation.svelte';
 	import { storyState } from '$lib/stores/story.svelte';
 	import { settingsState } from '$lib/stores/settings.svelte';
@@ -40,6 +41,16 @@
 		generationState.rejectDraft();
 	}
 
+	onMount(() => {
+		if (generationState.connectionState !== 'connected') {
+			generationState.reconnect();
+		}
+	});
+
+	function handleIndicatorClick() {
+		generationState.reconnect();
+	}
+
 	const canGenerate = $derived(
 		generationState.status === 'idle' &&
 			!!storyState.activeStoryId &&
@@ -51,7 +62,14 @@
 <div class="generation-controls">
 	<div class="controls-left">
 		<!-- Connection indicator -->
-		<div class="connection-indicator" title="WebSocket {generationState.connectionState}">
+		<div
+			class="connection-indicator"
+			title="Click to reconnect · {generationState.connectionState}"
+			onclick={handleIndicatorClick}
+			role="button"
+			tabindex="0"
+			onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleIndicatorClick(); }}
+		>
 			<span
 				class="dot"
 				class:connected={generationState.connectionState === 'connected'}
@@ -124,6 +142,11 @@
 		display: flex;
 		align-items: center;
 		gap: 6px;
+		cursor: pointer;
+	}
+
+	.connection-indicator:hover .connection-text {
+		color: var(--text-secondary, #d1d5db);
 	}
 
 	.dot {
