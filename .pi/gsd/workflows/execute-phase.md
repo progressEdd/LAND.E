@@ -1,4 +1,4 @@
-<gsd-version v="1.12.4" />
+<gsd-version v="2.1.4" />
 
 <gsd-arguments>
   <settings>
@@ -8,6 +8,9 @@
     </delimiters>
   </settings>
   <arg name="auto-chain-active" type="flag" flag="--auto" optional />
+  <arg name="no-transition" type="flag" flag="--no-transition" optional />
+  <arg name="gaps-only" type="flag" flag="--gaps-only" optional />
+  <arg name="interactive" type="flag" flag="--interactive" optional />
   <arg name="phase" type="number" />
   <arg name="user-text" type="string" optional />
 </gsd-arguments>
@@ -748,7 +751,7 @@ Items saved to `{phase_num}-HUMAN-UAT.md` - they will appear in `/gsd-progress` 
 
 `/gsd-plan-phase {X} --gaps ${GSD_WS}`
 
-<sub>`/clear` first → fresh context window</sub>
+<sub>`/new` first → fresh context window</sub>
 
 Also: `cat {phase_dir}/{phase_num}-VERIFICATION.md` - full report
 Also: `/gsd-verify-work {X} ${GSD_WS}` - manual testing first
@@ -886,7 +889,7 @@ Subagents: fresh context each (200k-1M depending on model). No polling (Task blo
 For 1M+ context models, consider:
 - Passing richer context (code snippets, dependency outputs) directly to executors instead of just file paths
 - Running small phases (≤3 plans, no dependencies) inline without subagent spawning overhead
-- Relaxing /clear recommendations - context rot onset is much further out with 5x window
+- Relaxing /new recommendations - context rot onset is much further out with 5x window
 </context_efficiency>
 
 <failure_handling>

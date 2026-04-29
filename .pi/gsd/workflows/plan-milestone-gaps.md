@@ -1,4 +1,4 @@
-<gsd-version v="1.12.4" />
+<gsd-version v="2.1.4" />
 
 <gsd-arguments>
   <settings><keep-extra-args /></settings>
@@ -202,7 +202,7 @@ pi-gsd-tools commit "docs(roadmap): add gap closure phases {N}-{M}" --files .pla
 
 `/gsd-plan-phase {N}`
 
-<sub>`/clear` first → fresh context window</sub>
+<sub>`/new` first → fresh context window</sub>
 
 ---
 

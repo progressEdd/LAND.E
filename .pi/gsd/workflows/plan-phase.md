@@ -1,4 +1,4 @@
-<gsd-version v="1.12.4" />
+<gsd-version v="2.1.4" />
 
 <gsd-arguments>
   <settings>
@@ -6,6 +6,10 @@
   </settings>
   <arg name="auto-chain-active" type="flag" flag="--auto" optional />
   <arg name="skip-research" type="flag" flag="--skip-research" optional />
+  <arg name="gaps" type="flag" flag="--gaps" optional />
+  <arg name="skip-verify" type="flag" flag="--skip-verify" optional />
+  <arg name="reviews" type="flag" flag="--reviews" optional />
+  <arg name="text" type="flag" flag="--text" optional />
   <arg name="phase" type="number" />
 </gsd-arguments>
 
@@ -855,7 +859,7 @@ Verification: {Passed | Passed with override | Skipped}
 
 /gsd-execute-phase {X} ${GSD_WS}
 
-<sub>/clear first → fresh context window</sub>
+<sub>/new first → fresh context window</sub>
 
 ───────────────────────────────────────────────────────────────
 

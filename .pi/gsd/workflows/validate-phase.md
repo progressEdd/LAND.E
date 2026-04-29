@@ -1,4 +1,4 @@
-<gsd-version v="1.12.4" />
+<gsd-version v="2.1.4" />
 
 <gsd-arguments>
   <settings>
@@ -227,7 +227,7 @@ GSD > PHASE {N} VALIDATED (PARTIAL)
 ▶ Retry: /gsd-validate-phase {N} ${GSD_WS}
 ```
 
-Display `/clear` reminder.
+Display `/new` reminder.
 
 </process>
 

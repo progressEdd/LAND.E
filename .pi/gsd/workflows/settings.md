@@ -1,4 +1,4 @@
-<gsd-version v="1.12.4" />
+<gsd-version v="2.1.4" />
 
 <gsd-arguments>
   <settings><keep-extra-args /></settings>
@@ -105,7 +105,7 @@ AskUserQuestion([
     header: "Auto",
     multiSelect: false,
     options: [
-      { label: "No (Recommended)", description: "Manual /clear + paste between stages" },
+      { label: "No (Recommended)", description: "Manual /new + paste between stages" },
       { label: "Yes", description: "Chain stages via Task() subagents (same isolation)" }
     ]
   },

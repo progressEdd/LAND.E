@@ -1,4 +1,4 @@
-<gsd-version v="1.12.4" />
+<gsd-version v="2.1.4" />
 
 <gsd-arguments>
   <settings>
@@ -635,7 +635,7 @@ Plans verified and ready for execution.
 
 **Execute fixes** - run fix plans
 
-`/clear` then `/gsd-execute-phase {phase} --gaps-only`
+`/new` then `/gsd-execute-phase {phase} --gaps-only`
 
 ───────────────────────────────────────────────────────────────
 ```

@@ -1,4 +1,4 @@
-<gsd-version v="1.12.4" />
+<gsd-version v="2.1.4" />
 
 <gsd-arguments>
   <settings><keep-extra-args /></settings>
@@ -213,7 +213,7 @@ Full review: {path to UI-REVIEW.md}
 - `/gsd-verify-work {N}` - UAT testing
 - `/gsd-plan-phase {N+1}` - plan next phase
 
-<sub>/clear first → fresh context window</sub>
+<sub>/new first → fresh context window</sub>
 
 ───────────────────────────────────────────────────────────────
 ```

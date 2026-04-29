@@ -1,4 +1,4 @@
-<gsd-version v="1.12.4" />
+<gsd-version v="2.1.4" />
 
 <gsd-arguments>
   <settings>
@@ -224,7 +224,7 @@ Create `.planning/config.json` with all settings (CLI fills in remaining default
 
 ```bash
 mkdir -p .planning
-pi-gsd-tools config-new-project '{"mode":"yolo","granularity":"[selected]","parallelization":true|false,"commit_docs":true|false,"model_profile":"quality|balanced|budget|inherit","workflow":{"research":true|false,"plan_check":true|false,"verifier":true|false,"nyquist_validation":true|false,"auto_advance":true}}'
+pi-gsd-tools config-new-project --choices '{"mode":"yolo","granularity":"[selected]","parallelization":true|false,"commit_docs":true|false,"model_profile":"quality|balanced|budget|inherit","workflow":{"research":true|false,"plan_check":true|false,"verifier":true|false,"nyquist_validation":true|false,"auto_advance":true}}'
 ```
 
 **If commit_docs = No:** Add `.planning/` to `.gitignore`.
@@ -544,7 +544,7 @@ Create `.planning/config.json` with all settings (CLI fills in remaining default
 
 ```bash
 mkdir -p .planning
-pi-gsd-tools config-new-project '{"mode":"[yolo|interactive]","granularity":"[selected]","parallelization":true|false,"commit_docs":true|false,"model_profile":"quality|balanced|budget|inherit","workflow":{"research":true|false,"plan_check":true|false,"verifier":true|false,"nyquist_validation":[false if granularity=coarse, true otherwise]}}'
+pi-gsd-tools config-new-project --choices '{"mode":"[yolo|interactive]","granularity":"[selected]","parallelization":true|false,"commit_docs":true|false,"model_profile":"quality|balanced|budget|inherit","workflow":{"research":true|false,"plan_check":true|false,"verifier":true|false,"nyquist_validation":[false if granularity=coarse, true otherwise]}}'
 ```
 
 **Note:** Run `/gsd-settings` anytime to update model profile, workflow agents, branching strategy, and other preferences.
@@ -1209,7 +1209,7 @@ PHASE1_HAS_UI=$(echo "$PHASE1_SECTION" | grep -qi "UI hint.*yes" && echo "true" 
 
 /gsd-discuss-phase 1 - gather context and clarify approach
 
-<sub>/clear first → fresh context window</sub>
+<sub>/new first → fresh context window</sub>
 
 ---
 
@@ -1231,7 +1231,7 @@ PHASE1_HAS_UI=$(echo "$PHASE1_SECTION" | grep -qi "UI hint.*yes" && echo "true" 
 
 /gsd-discuss-phase 1 - gather context and clarify approach
 
-<sub>/clear first → fresh context window</sub>
+<sub>/new first → fresh context window</sub>
 
 ---
 

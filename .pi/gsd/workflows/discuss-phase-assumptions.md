@@ -1,4 +1,4 @@
-<gsd-version v="1.12.4" />
+<gsd-version v="2.1.4" />
 
 <gsd-arguments>
   <settings><keep-extra-args /></settings>
@@ -653,7 +653,7 @@ Created: .planning/phases/${PADDED_PHASE}-${SLUG}/${PADDED_PHASE}-CONTEXT.md
 
 `/gsd-plan-phase ${PHASE}`
 
-<sub>`/clear` first → fresh context window</sub>
+<sub>`/new` first → fresh context window</sub>
 
 ---
 
