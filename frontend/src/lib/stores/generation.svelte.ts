@@ -4,7 +4,7 @@ import { storyState } from '$lib/stores/story.svelte';
 import { settingsState } from '$lib/stores/settings.svelte';
 import type { ConnectionState } from '$lib/api/ws';
 
-export type GenerationStatus = 'idle' | 'generating' | 'draft_ready' | 'accepting' | 'rejecting';
+export type GenerationStatus = 'idle' | 'generating' | 'analyzing' | 'draft_ready' | 'accepting' | 'rejecting';
 export type DraftAction = 'accepted' | 'rejected' | null;
 
 class GenerationState {
@@ -15,9 +15,10 @@ class GenerationState {
 	lastAnalysis = $state<StoryAnalysis | null>(null);
 	error = $state<string | null>(null);
 	connectionState = $state<ConnectionState>('disconnected');
+	statusMessage = $state<string>('');
 
 	get isGenerating(): boolean {
-		return this.status === 'generating';
+		return this.status === 'generating' || this.status === 'analyzing';
 	}
 
 	get hasDraft(): boolean {
@@ -98,6 +99,14 @@ class GenerationState {
 		switch (msg.type) {
 			case 'token':
 				this.draftContent += msg.content;
+				this.statusMessage = '';
+				break;
+
+			case 'status':
+				this.statusMessage = msg.message;
+				if (msg.message.includes('Analyzing')) {
+					this.status = 'analyzing';
+				}
 				break;
 
 			case 'draft_created':
@@ -107,11 +116,13 @@ class GenerationState {
 			case 'complete':
 				this.draftNodeId = msg.node_id;
 				this.lastAnalysis = msg.analysis;
+				this.statusMessage = '';
 				this.status = 'draft_ready';
 				break;
 
 			case 'cancelled':
 				this.draftNodeId = msg.node_id;
+				this.statusMessage = '';
 				this.status = 'draft_ready';
 				break;
 
@@ -133,6 +144,7 @@ class GenerationState {
 
 			case 'error':
 				this.error = msg.message;
+				this.statusMessage = '';
 				this.status = 'idle';
 				break;
 		}

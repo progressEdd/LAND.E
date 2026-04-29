@@ -8,7 +8,7 @@ import os
 import time
 from typing import Any, Dict, Iterable, Sequence, Type, TypeVar
 
-from openai import OpenAI
+from openai import AsyncOpenAI, OpenAI
 
 from app.models.schemas import LLMBackendConfig
 
@@ -105,7 +105,7 @@ def _try_ollama_list_models(ollama_host_url: str) -> tuple[list[str], str | None
 
 
 def create_llm_client(config: LLMBackendConfig) -> OpenAI:
-    """Factory for LLM clients — supports lmstudio, ollama, openai, llamacpp.
+    """Factory for sync LLM clients — supports lmstudio, ollama, openai, llamacpp.
 
     Ported from app.py lines 160-206 (excluding azure).
     """
@@ -126,6 +126,29 @@ def create_llm_client(config: LLMBackendConfig) -> OpenAI:
 
     elif backend == "openai":
         return OpenAI(api_key=config.api_key or os.environ.get("OPENAI_API_KEY"))
+
+    raise ValueError(f"Unknown backend: {backend}")
+
+
+def create_async_llm_client(config: LLMBackendConfig) -> AsyncOpenAI:
+    """Factory for async LLM clients — same backends as create_llm_client."""
+    backend = config.backend
+
+    if backend == "llamacpp":
+        base_url = _normalize_base_url(config.base_url or "http://localhost:8080/v1")
+        return AsyncOpenAI(base_url=base_url, api_key="sk-no-key-required")
+
+    elif backend == "lmstudio":
+        base_url = _normalize_base_url(config.base_url or "http://localhost:1234/v1")
+        return AsyncOpenAI(base_url=base_url, api_key="lm-studio")
+
+    elif backend == "ollama":
+        host = (config.host or "").strip() or "http://localhost:11434"
+        base_url = _normalize_base_url(host)
+        return AsyncOpenAI(base_url=base_url, api_key="ollama")
+
+    elif backend == "openai":
+        return AsyncOpenAI(api_key=config.api_key or os.environ.get("OPENAI_API_KEY"))
 
     raise ValueError(f"Unknown backend: {backend}")
 
@@ -153,7 +176,7 @@ async def list_models(
 
 
 async def parse_structured(
-    client: OpenAI,
+    client: OpenAI | AsyncOpenAI,
     *,
     model: str,
     schema: Type[T],
@@ -162,25 +185,34 @@ async def parse_structured(
     temperature: float = 0.2,
     extra_messages: Sequence[Dict[str, str]] = (),
 ) -> T:
-    """Port of app.py parse_structured() (lines 359-381).
+    """Parse structured output from the LLM using beta.chat.completions.parse.
 
-    Uses OpenAI beta structured output API.
-    Runs in a threadpool since the OpenAI SDK is synchronous.
+    Works with both sync OpenAI and AsyncOpenAI clients.
+    Sync clients are run in a threadpool.
     """
     messages: list[dict[str, str]] = [{"role": "system", "content": system_content}]
     messages += list(extra_messages)
     messages += [{"role": "user", "content": user_content}]
 
-    parsed = await asyncio.to_thread(
-        lambda: client.beta.chat.completions.parse(
+    if isinstance(client, AsyncOpenAI):
+        response = await client.beta.chat.completions.parse(
             model=model,
             response_format=schema,
             messages=messages,
             temperature=temperature,
         )
-        .choices[0]
-        .message.parsed
-    )
+        parsed = response.choices[0].message.parsed
+    else:
+        parsed = await asyncio.to_thread(
+            lambda: client.beta.chat.completions.parse(
+                model=model,
+                response_format=schema,
+                messages=messages,
+                temperature=temperature,
+            )
+            .choices[0]
+            .message.parsed
+        )
     return schema.model_validate(parsed)
 
 

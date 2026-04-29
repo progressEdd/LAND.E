@@ -7,6 +7,7 @@
 	const statusMessages: Record<string, string> = {
 		idle: '',
 		generating: 'Generating...',
+		analyzing: 'Analyzing...',
 		draft_ready: 'Draft ready — accept or reject',
 		accepting: 'Accepting...',
 		rejecting: 'Rejecting...'
@@ -80,10 +81,10 @@
 		</div>
 
 		<!-- Status text -->
-		{#if generationState.status === 'generating'}
+		{#if generationState.status === 'generating' || generationState.status === 'analyzing'}
 			<span class="status-text generating">
 				<span class="generating-dot"></span>
-				Generating...
+				{generationState.statusMessage || statusMessages[generationState.status]}
 			</span>
 		{:else if statusMessages[generationState.status]}
 			<span class="status-text">{statusMessages[generationState.status]}</span>
@@ -101,7 +102,7 @@
 			</button>
 		{/if}
 
-		{#if generationState.status === 'generating'}
+		{#if generationState.status === 'generating' || generationState.status === 'analyzing'}
 			<button class="btn btn-cancel" onclick={handleCancel}>Cancel</button>
 		{/if}
 

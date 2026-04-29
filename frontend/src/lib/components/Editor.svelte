@@ -181,7 +181,7 @@
 
 		if (!editor) return;
 
-		if (status === 'generating' && content.length > lastDraftContentLength) {
+		if ((status === 'generating' || status === 'analyzing') && content.length > lastDraftContentLength) {
 			// New tokens arrived — append them with ai_generated provenance
 			let newText = content.slice(lastDraftContentLength);
 

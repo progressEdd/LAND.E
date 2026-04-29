@@ -11,6 +11,7 @@ export type WSClientMessage =
 // Message types received from server
 export type WSServerMessage =
 	| { type: 'token'; content: string }
+	| { type: 'status'; message: string }
 	| { type: 'draft_created'; node_id: string }
 	| { type: 'complete'; node_id: string; analysis: StoryAnalysis }
 	| { type: 'cancelled'; node_id: string }

@@ -4,8 +4,9 @@ Ported from 02-worktrees/demo-marimo-app/app.py lines 697-735.
 """
 
 from dataclasses import dataclass
+from typing import AsyncIterator
 
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from app.models.schemas import StoryAnalysis, StoryContinue
 from app.services.llm import parse_structured
@@ -44,8 +45,86 @@ def extract_characters(cast: list) -> list[tuple[str, str | None]]:
     return results
 
 
+def _build_continue_messages(
+    premise: str,
+    analysis: StoryAnalysis,
+    seed: str | None,
+) -> list[dict[str, str]]:
+    """Build the messages list for the continuation LLM call."""
+    system_msg = {
+        "role": "system",
+        "content": (
+            "You are a skilled novelist. Write the next paragraph only.\n"
+            "Output exactly one paragraph of story prose (no headings, no bullets, no analysis).\n"
+            "Preserve continuity: characters, tone, POV, tense, world rules.\n"
+            "Length target: ~120–200 words unless told otherwise.\n"
+            "Concrete detail, strong verbs, show > tell; minimal clichés.\n"
+            "Dialogue (if any) should reveal motive or conflict; avoid summary dumps.\n"
+            "End with a soft hook/turn that invites the next paragraph."
+        ),
+    }
+
+    seed_hint = f"\n\nDirectional seed (follow this beat):\n{seed}" if seed else ""
+    user_msg = {
+        "role": "user",
+        "content": (
+            f"Premise:\n{premise}\n\n"
+            f"Story analysis summary:\n{analysis.model_dump_json(indent=2)}\n\n"
+            f"Write the next paragraph.{seed_hint}"
+        ),
+    }
+    return [system_msg, user_msg]
+
+
+async def run_analysis(
+    client: AsyncOpenAI,
+    *,
+    model: str,
+    premise: str,
+    story_text: str,
+    temperature: float = 0.2,
+) -> StoryAnalysis:
+    """Run the analysis step only (non-streaming, structured output)."""
+    analysis_input = f"Premise:\n{premise}\n\nStory text:\n{story_text}"
+    return await parse_structured(
+        client,
+        model=model,
+        schema=StoryAnalysis,
+        user_content=analysis_input,
+        temperature=temperature,
+    )
+
+
+async def stream_continuation(
+    client: AsyncOpenAI,
+    *,
+    model: str,
+    premise: str,
+    analysis: StoryAnalysis,
+    seed: str | None = None,
+    temperature: float = 0.2,
+) -> AsyncIterator[str]:
+    """Stream the continuation paragraph token-by-token from the LLM.
+
+    Uses AsyncOpenAI with stream=True for native async streaming.
+    No threads, no queues — just async for over the SDK's stream.
+    """
+    messages = _build_continue_messages(premise, analysis, seed)
+
+    response = await client.chat.completions.create(
+        model=model,
+        messages=messages,
+        temperature=temperature,
+        stream=True,
+    )
+    async for chunk in response:
+        delta = chunk.choices[0].delta if chunk.choices else None
+        if delta and delta.content:
+            yield delta.content
+
+
 async def run_cycle(
-    client: OpenAI,
+    client: AsyncOpenAI,
     *,
     model: str,
     premise: str,

@@ -8,8 +8,8 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app.models.database import get_db
 from app.routers.llm import _current_config
-from app.services.llm import create_llm_client
-from app.services.story import run_cycle, extract_characters
+from app.services.llm import create_async_llm_client
+from app.services.story import run_analysis, stream_continuation, extract_characters
 
 
 router = APIRouter(tags=["websocket"])
@@ -116,7 +116,7 @@ async def websocket_generate(websocket: WebSocket):
                     {"type": "draft_created", "node_id": draft_id}
                 )
 
-                # Run the generation cycle
+                # Run the generation cycle with real streaming
                 try:
                     config = _current_config
                     if not config.backend:
@@ -128,7 +128,7 @@ async def websocket_generate(websocket: WebSocket):
                         )
                         continue
 
-                    client = create_llm_client(config)
+                    client = create_async_llm_client(config)
 
                     # Determine model — use settings state
                     # The model is sent from the frontend in the generate message
@@ -142,25 +142,44 @@ async def websocket_generate(websocket: WebSocket):
                         )
                         continue
 
-                    result = await run_cycle(
+                    # Step 1: Analysis (non-streaming, structured output)
+                    await websocket.send_json({
+                        "type": "status",
+                        "message": "Analyzing story...",
+                    })
+
+                    analysis = await run_analysis(
                         client,
                         model=model,
                         premise=premise,
                         story_text=story_text,
-                        seed=msg.get("seed"),
                     )
 
-                    # Stream the draft text character-by-character
-                    draft_text = result.draft_next
-                    accumulated = ""
+                    if cancel_flag:
+                        await websocket.send_json(
+                            {"type": "cancelled", "node_id": draft_id}
+                        )
+                        continue
 
-                    for char in draft_text:
+                    # Step 2: Stream continuation token-by-token from the LLM
+                    await websocket.send_json({
+                        "type": "status",
+                        "message": "Writing next paragraph...",
+                    })
+
+                    accumulated = ""
+                    async for text_chunk in stream_continuation(
+                        client,
+                        model=model,
+                        premise=premise,
+                        analysis=analysis,
+                        seed=msg.get("seed"),
+                    ):
                         if cancel_flag:
                             break
 
-                        accumulated += char
-                        await websocket.send_json({"type": "token", "content": char})
-                        await asyncio.sleep(0.01)  # 10ms per character
+                        accumulated += text_chunk
+                        await websocket.send_json({"type": "token", "content": text_chunk})
 
                     # Update draft node content in DB
                     async with get_db() as db:
@@ -183,11 +202,11 @@ async def websocket_generate(websocket: WebSocket):
                         await db.execute(
                             """INSERT OR REPLACE INTO node_analyses (id, node_id, analysis_json)
                                VALUES (?, ?, ?)""",
-                            (analysis_id, draft_id, result.analysis.model_dump_json()),
+                            (analysis_id, draft_id, analysis.model_dump_json()),
                         )
 
                         # Extract and persist character mentions
-                        characters = extract_characters(result.analysis.cast)
+                        characters = extract_characters(analysis.cast)
                         for char_name, char_role in characters:
                             char_id = uuid.uuid4().hex
                             await db.execute(
@@ -204,7 +223,7 @@ async def websocket_generate(websocket: WebSocket):
                         )
                     else:
                         # Send complete with analysis
-                        analysis_dict = result.analysis.model_dump()
+                        analysis_dict = analysis.model_dump()
                         await websocket.send_json(
                             {
                                 "type": "complete",
